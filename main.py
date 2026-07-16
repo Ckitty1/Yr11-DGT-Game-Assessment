@@ -1,9 +1,14 @@
 # importing pygame library and initializing
 import pygame
 pygame.init()
+pygame.mixer.init()
+
+# other libraries
+import random
 
 # ------------------------------importing level layouts from "levels.py"------------------------------
 from levels import lvl1_data
+from levels import lvl1_activated_data
 # ----------------------------------------------------------------------------------------------------
 
 # ------------------------------window setup------------------------------
@@ -21,6 +26,8 @@ pygame.display.set_caption('Stuck Inbetween')
 dirt_img = pygame.image.load('images/dirt.jpg')
 background_img = pygame.image.load('images/background.png')
 water_img = pygame.image.load('images/water.png')
+fish_img = pygame.image.load('images/fish.png')
+fish_button_img = pygame.image.load('images/fish button.jpg')
 # player images
 player_img = dirt_img
 # start menu images
@@ -40,6 +47,10 @@ no_img = pygame.image.load('images/no.jpg')
 pixel_font = pygame.font.Font('fonts/Tiny5-Regular.ttf', 999)
 # -------------------------------------------------------------------------
 
+# ------------------------------loading sounds------------------------------
+water_jump_sound = pygame.mixer.Sound('sounds/water splash.wav')
+# --------------------------------------------------------------------------
+
 # ------------------------------defining colours------------------------------
 black = (0,0,0)
 white = (255,255,255)
@@ -48,16 +59,24 @@ light_brown = (99,63,29)
 # ----------------------------------------------------------------------------
 
 # ------------------------------setting general game variables------------------------------
+# menu variables
 start_menu = True
 paused = True
 pause_menu = False
-current_lvl = 1
 option_menu = False
 confirm_home_menu = False
 
+# level variables
+current_lvl = 1
+fish_attracting = False
+fish_button_activated = False
+
+# sound variables
+sound_multi = 1
+
 # player variables
-current_son = 'tangaroa'
-current_ability = 'sea control'
+current_son = 'Tangaroa'
+current_ability = 'Sea Control'
 # ------------------------------------------------------------------------------------------
 
 # ------------------------------functions------------------------------
@@ -75,6 +94,13 @@ def draw_text(text, font, colour, x, y, width):
 def draw_pause_background():
     pygame.draw.rect(win, dark_brown, (tile_size*3, tile_size*2, tile_size*20, tile_size*11), 0, 15)
     pygame.draw.rect(win, light_brown, (tile_size*3, tile_size*2, tile_size*20, tile_size*11), 15, 15)
+
+# function for Tangaroa's fish attract ability
+def fish_attract():
+    if key[pygame.K_a]:
+        return True
+    else:
+        return False
 # ---------------------------------------------------------------------
 
 # ------------------------------world setup------------------------------
@@ -95,12 +121,14 @@ class World():
         for row in data:
             column_count = 0
             for tile in row:
-                if tile == 1:
-                    self.img = pygame.transform.scale(dirt_img, (tile_size, tile_size))
-                elif tile == 0:
+                if tile == 0:
                     self.img = pygame.transform.scale(background_img, (tile_size, tile_size))
+                elif tile == 1:
+                    self.img = pygame.transform.scale(dirt_img, (tile_size, tile_size))
                 elif tile == 2:
                     self.img = pygame.transform.scale(water_img, (tile_size, tile_size))
+                elif tile == 3:
+                    self.img = pygame.transform.scale(fish_button_img, (tile_size, tile_size))
                 self.rect = self.img.get_rect()
                 self.rect.x = column_count * tile_size
                 self.rect.y = row_count * tile_size
@@ -144,17 +172,22 @@ class Player():
         if key[pygame.K_UP] and self.y_vel == 0:
             self.y_vel = -15.1
 
-        # calculating time since last ability
+        # ------------------------------Tangaroa Abilities------------------------------
+        # WATER JUMP ABILITY
+        # calculating time since last jump ability
         time_since_last_ability = pygame.time.get_ticks()-self.last_ability
 
         # activate jump ability
         if key[pygame.K_SPACE] and self.y_vel == 0 and time_since_last_ability > 5000:
             self.y_vel = -20.1
+            water_jump_sound.set_volume(0.75*sound_multi)
+            water_jump_sound.play()
             # storing the time the last ability was used
             self.last_ability = pygame.time.get_ticks()
+        # ------------------------------------------------------------------------------
 
         # gravity
-        self.y_vel += 1
+        self.y_vel += 1.5
         # max falling velocity
         if self.y_vel > 15:
             self.y_vel = 15
@@ -185,6 +218,9 @@ class Player():
         # updating player model coordinates
         self.rect.x += dx
         self.rect.y += dy
+
+    def player_xy_bottom(self):
+        return (self.rect.x, self.rect.y, self.rect.bottom)
 
     def draw(self):
         # drawing character onto screen
@@ -223,15 +259,70 @@ class Button():
         return action
 # ------------------------------------------------------------------------
 
+# ------------------------------fish setup------------------------------
+class Fish():
+    def __init__(self, x1, x2, y1, y2, width):
+        original_width = fish_img.get_width()
+        original_height = fish_img.get_height()
+        scale_factor = width/original_width
+        self.img = pygame.transform.scale(fish_img, (width, original_height*scale_factor))
+        self.rect = self.img.get_rect()
+        self.rect.x = random.randint(x1, x2)
+        self.rect.y = random.randint(y1, y2)
+        self.width = self.img.get_width()
+        self.height = self.img.get_height()
+        self.vel = random.randint(1, 5)
+
+    def update(self):
+        # creating potential fish coordinates just like the player
+        dx = 0
+        dy = 0
+
+        # while the fish attracting ability is active, the fish will move closer to the player
+        if fish_attracting:
+            if self.rect.x > player_x:
+                dx -= self.vel
+            elif self.rect.x < player_x:
+                dx += self.vel
+            
+            if self.rect.y > player_bottom:
+                dy -= self.vel
+            elif self.rect.y < player_bottom:
+                dy += self.vel
+
+        # checking for collision with tiles (just like the player)
+        for tile in world.tile_list:
+            # checking if tile is background or water (fish don't collide with these tiles)
+            if tile[2] != 0 and tile[2] != 2:
+                # if collide on x axis, stop moving in the x direction (horozontally)
+                if tile[1].colliderect(self.rect.x+dx, self.rect.y, self.width, self.height):
+                    dx = 0
+                    # checking if fish touched button
+                    if tile[2] == 3:
+                        return True
+                # if collide on y axis, stop moving in the y direction (vertically)
+                if tile[1].colliderect(self.rect.x, self.rect.y+dy, self.width, self.height):
+                    dy = 0
+
+        # updating fish model coordinates
+        self.rect.x += dx
+        self.rect.y += dy
+
+    def draw(self):
+        # drawing the fish onto screen
+        win.blit(self.img, self.rect)
+# ----------------------------------------------------------------------
+
 # starting x and y position of the player
-x = tile_size*3
-y = tile_size*13
+player_x = tile_size*2
+player_y = tile_size*12
 
 # loading player
-player = Player(x, y)
+player = Player(player_x, player_y)
 
 # loading levels
 lvl1 = World(lvl1_data)
+lvl1_activated = World(lvl1_activated_data)
 
 # loading different buttons
 # - start menu buttons
@@ -246,6 +337,9 @@ resume_button = Button(resume_img, win_width-tile_size*8, tile_size*8, tile_size
 # - confirm home menu buttons
 yes_button = Button(yes_img, tile_size*6, tile_size*9, tile_size*5, tile_size*2)
 no_button = Button(no_img, win_width-tile_size*11, tile_size*9, tile_size*5, tile_size*2)
+
+# loading fish
+fish = Fish(tile_size*11, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75)
 
 # the main game loop that always runs
 run = True
@@ -266,7 +360,10 @@ while run:
 
     # showing different levels on screen
     if current_lvl == 1:
-        world = lvl1
+        if fish_button_activated:
+            world = lvl1_activated
+        else:
+            world = lvl1
     elif current_lvl == 2:
         pass
 
@@ -279,7 +376,7 @@ while run:
         if start_button.draw():
             start_menu = False
             paused = False
-            player.start(x, y)
+            player.start(player_x, player_y)
         # drawing quit button
         #  - if the quit button is pressed, the game window stops/closes
         if quit_button.draw():
@@ -290,6 +387,11 @@ while run:
 
         # drawing player
         player.draw()
+
+        # drawing fish
+        if current_lvl == 1:
+            fish.draw()
+
         if paused:
             if pause_menu:
                 # drawing pause menu background
@@ -306,7 +408,7 @@ while run:
                 elif restart_button.draw():
                     pause_menu = False
                     paused = False
-                    player.start(x, y)
+                    player.start(player_x, player_y)
                 # drawing resume button
                 # - if resume button is pressed, the level continues with no change
                 elif resume_button.draw():
@@ -327,6 +429,17 @@ while run:
         else:
             # updating player
             player.update()
+            player_x = player.player_xy_bottom()[0]
+            player_y = player.player_xy_bottom()[1]
+            player_bottom = player.player_xy_bottom()[2]
+
+            if current_lvl == 1:
+                # updating fish
+                if fish.update():
+                    fish_button_activated = True
+
+                # checking to see if "a" is being pressed
+                fish_attracting = fish_attract()
 
             # if pause button is pressed, open pause menu and pause all game updates
             if pause_button.draw() or key[pygame.K_ESCAPE]:
