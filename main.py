@@ -9,6 +9,7 @@ import random
 # ------------------------------importing level layouts from "levels.py"------------------------------
 from levels import lvl1_data
 from levels import lvl1_activated_data
+from levels import lvl2_data
 # ----------------------------------------------------------------------------------------------------
 
 # ------------------------------window setup------------------------------
@@ -28,6 +29,7 @@ background_img = pygame.image.load('images/background.png')
 water_img = pygame.image.load('images/water.png')
 fish_img = pygame.image.load('images/fish.png')
 fish_button_img = pygame.image.load('images/fish button.jpg')
+gate_img = pygame.image.load('images/door.jpg')
 # player images
 player_img = dirt_img
 # start menu images
@@ -68,6 +70,7 @@ confirm_home_menu = False
 
 # level variables
 current_lvl = 1
+transitioning = False
 fish_attracting = False
 fish_button_activated = False
 
@@ -95,8 +98,40 @@ def draw_pause_background():
     pygame.draw.rect(win, dark_brown, (tile_size*3, tile_size*2, tile_size*20, tile_size*11), 0, 15)
     pygame.draw.rect(win, light_brown, (tile_size*3, tile_size*2, tile_size*20, tile_size*11), 15, 15)
 
+# function for transition start
+def transition_start():
+    rect_surface = pygame.Surface((1400, 850))
+    rect_surface.fill((0,0,0))
+    opacity = 0
+    fade_speed = 5
+    for _ in range(9999):
+        rect_surface.set_alpha(opacity)
+        win.blit(rect_surface, (0, 0))
+        opacity += fade_speed
+        pygame.display.update()
+        pygame.time.delay(17)
+        if opacity > 255:
+            break
+
+# function for transition ending
+def transition_end():
+    rect_surface = pygame.Surface((1400, 850))
+    rect_surface.fill((0,0,0))
+    opacity = 255
+    fade_speed = 2
+    for _ in range(9999):
+        rect_surface.set_alpha(opacity)
+        world.draw()
+        player.draw()
+        win.blit(rect_surface, (0, 0))
+        opacity -= fade_speed
+        pygame.display.update()
+        pygame.time.delay(17)
+        if opacity < 0:
+            break
+
 # function for Tangaroa's fish attract ability
-def fish_attract():
+def fish_attract_check():
     if key[pygame.K_a]:
         return True
     else:
@@ -109,7 +144,7 @@ def fish_attract():
 tile_size = 50
 
 class World():
-    def __init__(self,data):
+    def __init__(self, data):
         # creating a list that holds data for every tile
         self.tile_list = []
 
@@ -129,11 +164,14 @@ class World():
                     self.img = pygame.transform.scale(water_img, (tile_size, tile_size))
                 elif tile == 3:
                     self.img = pygame.transform.scale(fish_button_img, (tile_size, tile_size))
+                elif tile == 9:
+                    self.img = pygame.transform.scale(gate_img, (tile_size, tile_size))
                 self.rect = self.img.get_rect()
                 self.rect.x = column_count * tile_size
                 self.rect.y = row_count * tile_size
                 tile_info = (self.img, self.rect, tile)
                 self.tile_list.append(tile_info)
+
                 column_count += 1
             row_count += 1
 
@@ -189,7 +227,7 @@ class Player():
         # gravity
         self.y_vel += 1.5
         # max falling velocity
-        if self.y_vel > 15:
+        if self.y_vel > 25:
             self.y_vel = 15
         dy += self.y_vel
 
@@ -202,7 +240,7 @@ class Player():
         # - if the player is falling, it only changes the player's potential y position by the distance between the top of the tile and the bottom of the player
         for tile in world.tile_list:
             # checking if tile is background or real
-            if tile[2] != 0:
+            if tile[2] not in (0, 9):
                 if tile[1].colliderect(self.rect.x+dx, self.rect.y, self.width, self.height):
                     dx = 0
                 if tile[1].colliderect(self.rect.x, self.rect.y+dy, self.width, self.height):
@@ -271,7 +309,7 @@ class Fish():
         self.rect.y = random.randint(y1, y2)
         self.width = self.img.get_width()
         self.height = self.img.get_height()
-        self.vel = random.randint(1, 5)
+        self.vel = random.randint(2, 5)
 
     def update(self):
         # creating potential fish coordinates just like the player
@@ -313,9 +351,32 @@ class Fish():
         win.blit(self.img, self.rect)
 # ----------------------------------------------------------------------
 
+# ------------------------------exit gate setup------------------------------
+class Gate():
+    def __init__(self, x, y, width, height):
+        self.img = pygame.transform.scale(gate_img, (width, height))
+        self.rect = self.img.get_rect()
+        self.draw(x, y)
+
+    def update(self):
+        # checking if gate is touching player
+        if player.rect.colliderect(self.rect):
+            return True
+
+    def draw(self, x, y):
+        self.rect.x = x
+        self.rect.y = y
+        # drawing the gate onto the screen
+        win.blit(self.img, self.rect)
+# ---------------------------------------------------------------------------
+
 # starting x and y position of the player
-player_x = tile_size*2
-player_y = tile_size*12
+player_x_start = tile_size*22
+player_y_start = tile_size*1
+
+# changing variables for player position
+player_x = player_x_start
+player_y = player_y_start
 
 # loading player
 player = Player(player_x, player_y)
@@ -323,6 +384,13 @@ player = Player(player_x, player_y)
 # loading levels
 lvl1 = World(lvl1_data)
 lvl1_activated = World(lvl1_activated_data)
+lvl2 = World(lvl2_data)
+
+# loading exit gate
+gate = Gate(tile_size*24, tile_size*1.25, tile_size, tile_size*1.75)
+
+# loading fish
+fish1 = Fish(tile_size*11, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75)
 
 # loading different buttons
 # - start menu buttons
@@ -337,9 +405,6 @@ resume_button = Button(resume_img, win_width-tile_size*8, tile_size*8, tile_size
 # - confirm home menu buttons
 yes_button = Button(yes_img, tile_size*6, tile_size*9, tile_size*5, tile_size*2)
 no_button = Button(no_img, win_width-tile_size*11, tile_size*9, tile_size*5, tile_size*2)
-
-# loading fish
-fish = Fish(tile_size*11, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75)
 
 # the main game loop that always runs
 run = True
@@ -365,7 +430,14 @@ while run:
         else:
             world = lvl1
     elif current_lvl == 2:
-        pass
+        world = lvl2
+
+    # if the transition has started
+    if transitioning:
+        # current_lvl += 1
+        transition_end()
+        transitioning = False
+        paused = False
 
     if start_menu:
         # writing the title
@@ -376,7 +448,7 @@ while run:
         if start_button.draw():
             start_menu = False
             paused = False
-            player.start(player_x, player_y)
+            player.start(player_x_start, player_y_start)
         # drawing quit button
         #  - if the quit button is pressed, the game window stops/closes
         if quit_button.draw():
@@ -385,12 +457,14 @@ while run:
         # drawing level
         world.draw()
 
+        if current_lvl == 1:
+            # drawing fish
+            fish1.draw()
+            # drawing exit gate
+            gate.draw(tile_size*24, tile_size*1.25)
+            
         # drawing player
         player.draw()
-
-        # drawing fish
-        if current_lvl == 1:
-            fish.draw()
 
         if paused:
             if pause_menu:
@@ -408,7 +482,7 @@ while run:
                 elif restart_button.draw():
                     pause_menu = False
                     paused = False
-                    player.start(player_x, player_y)
+                    player.start(player_x_start, player_y_start)
                 # drawing resume button
                 # - if resume button is pressed, the level continues with no change
                 elif resume_button.draw():
@@ -435,11 +509,19 @@ while run:
 
             if current_lvl == 1:
                 # updating fish
-                if fish.update():
+                if fish1.update():
                     fish_button_activated = True
 
                 # checking to see if "a" is being pressed
-                fish_attracting = fish_attract()
+                fish_attracting = fish_attract_check()
+
+            # checking to see if player is touching exit gate
+            if gate.update():
+                paused = True
+                current_lvl += 1
+                player.start(player_x_start, player_y_start)
+                transitioning = True
+                transition_start()
 
             # if pause button is pressed, open pause menu and pause all game updates
             if pause_button.draw() or key[pygame.K_ESCAPE]:
