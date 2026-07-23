@@ -10,6 +10,7 @@ import random
 from levels import lvl1_data
 from levels import lvl1_activated_data
 from levels import lvl2_data
+from levels import lvl2_activated_data
 # ----------------------------------------------------------------------------------------------------
 
 # ------------------------------window setup------------------------------
@@ -23,23 +24,49 @@ pygame.display.set_caption('Stuck Inbetween')
 # ------------------------------------------------------------------------
 
 # ------------------------------loading images------------------------------
-# level images
-dirt_img = pygame.image.load('images/dirt.jpg')
+# level/world images
+# dirts
+dirt_img = pygame.image.load('images/dirt.png')
+dirt_top_img = pygame.image.load('images/dirt top.png')
+dirt_bottom_img = pygame.image.load('images/dirt bottom.png')
+dirt_right_img = pygame.image.load('images/dirt right.png')
+dirt_left_img = pygame.image.load('images/dirt left.png')
+# corners
+dirt_bottom_right_corner_img = pygame.image.load('images/dirt bottom right corner.png')
+dirt_bottom_left_corner_img = pygame.image.load('images/dirt bottom left corner.png')
+dirt_top_right_corner_img = pygame.image.load('images/dirt top right corner.png')
+dirt_top_left_corner_img = pygame.image.load('images/dirt top left corner.png')
+# edges
+dirt_bottom_right_edge_img = pygame.image.load('images/dirt bottom right edge.png')
+dirt_bottom_left_edge_img = pygame.image.load('images/dirt bottom left edge.png')
+dirt_top_right_edge_img = pygame.image.load('images/dirt top right edge.png')
+dirt_top_left_edge_img = pygame.image.load('images/dirt top left edge.png')
+
+# other tiles
 background_img = pygame.image.load('images/background.png')
 water_img = pygame.image.load('images/water.png')
 fish_img = pygame.image.load('images/fish.png')
-fish_button_img = pygame.image.load('images/fish button.jpg')
-gate_img = pygame.image.load('images/door.jpg')
+fish_button1_img = pygame.image.load('images/fish button 1.jpg')
+fish_button2_img = pygame.image.load('images/fish button 2.png')
+fish_button3_img = pygame.image.load('images/fish button 3.png')
+gate_img = pygame.image.load('images/exit gate.png')
+gate_top_img = pygame.image.load('images/exit gate top.png')
+gate_bottom_img = pygame.image.load('images/exit gate bottom.png')
+jump_pad_img = pygame.image.load('images/jump pad.png')
+
 # player images
 player_img = dirt_img
+
 # start menu images
 start_img = pygame.image.load('images/start.jpg')
 quit_img = pygame.image.load('images/quit.jpg')
+
 # pause images
 pause_img = pygame.image.load('images/pause.png')
 home_img = pygame.image.load('images/home.png')
 restart_img = pygame.image.load('images/restart.png')
 resume_img = pygame.image.load('images/resume.png')
+
 # confirm images
 yes_img = pygame.image.load('images/yes.png')
 no_img = pygame.image.load('images/no.jpg')
@@ -56,8 +83,8 @@ water_jump_sound = pygame.mixer.Sound('sounds/water splash.wav')
 # ------------------------------defining colours------------------------------
 black = (0,0,0)
 white = (255,255,255)
-dark_brown = (41,11,6)
-light_brown = (99,63,29)
+dark_brown = (61,24,0)
+light_brown = (110,63,1)
 # ----------------------------------------------------------------------------
 
 # ------------------------------setting general game variables------------------------------
@@ -69,7 +96,7 @@ option_menu = False
 confirm_home_menu = False
 
 # level variables
-current_lvl = 1
+current_lvl = 0
 transitioning = False
 fish_attracting = False
 fish_button_activated = False
@@ -118,7 +145,7 @@ def transition_end():
     rect_surface = pygame.Surface((1400, 850))
     rect_surface.fill((0,0,0))
     opacity = 255
-    fade_speed = 2
+    fade_speed = 3.5
     for _ in range(9999):
         rect_surface.set_alpha(opacity)
         world.draw()
@@ -149,23 +176,68 @@ class World():
         self.tile_list = []
 
         # going through every number in the level data and adding a tuple to the list created above, containing the tile's image and position
-        # if it's a 1, its image is a dirt
-        # if it's a 0, its image is a black square (background)
-        # if it's a 2, its image is a water
+        # different image depending on what number the tile is
         row_count = 0
         for row in data:
             column_count = 0
             for tile in row:
-                if tile == 0:
+                # 0 means background tile
+                if tile == '0':
                     self.img = pygame.transform.scale(background_img, (tile_size, tile_size))
-                elif tile == 1:
+
+                # DIRT TILES
+                # 1-5 are dirt tiles
+                elif tile == '1':
                     self.img = pygame.transform.scale(dirt_img, (tile_size, tile_size))
-                elif tile == 2:
+                elif tile == '2':
+                    self.img = pygame.transform.scale(dirt_top_img, (tile_size, tile_size))
+                elif tile == '3':
+                    self.img = pygame.transform.scale(dirt_bottom_img, (tile_size, tile_size))
+                elif tile == '4':
+                    self.img = pygame.transform.scale(dirt_left_img, (tile_size, tile_size))
+                elif tile == '5':
+                    self.img = pygame.transform.scale(dirt_right_img, (tile_size, tile_size))
+                # dirt variants/orientations
+                elif tile == 'q': # corners
+                    self.img = pygame.transform.scale(dirt_bottom_right_corner_img, (tile_size, tile_size))
+                elif tile == 'p':
+                    self.img = pygame.transform.scale(dirt_bottom_left_corner_img, (tile_size, tile_size))
+                elif tile == 'z':
+                    self.img = pygame.transform.scale(dirt_top_right_corner_img, (tile_size, tile_size))
+                elif tile == 'm':
+                    self.img = pygame.transform.scale(dirt_top_left_corner_img, (tile_size, tile_size))
+                elif tile == 'w': # edges
+                    self.img = pygame.transform.scale(dirt_bottom_right_edge_img, (tile_size, tile_size))
+                elif tile == 'o':
+                    self.img = pygame.transform.scale(dirt_bottom_left_edge_img, (tile_size, tile_size))
+                elif tile == 'x':
+                    self.img = pygame.transform.scale(dirt_top_right_edge_img, (tile_size, tile_size))
+                elif tile == 'n':
+                    self.img = pygame.transform.scale(dirt_top_left_edge_img, (tile_size, tile_size))
+
+                # OTHER TILES
+                # j means jump pad
+                elif tile == 'j':
+                    self.img = pygame.transform.scale(jump_pad_img, (tile_size, tile_size))
+                # 7 means water
+                elif tile == '7':
                     self.img = pygame.transform.scale(water_img, (tile_size, tile_size))
-                elif tile == 3:
-                    self.img = pygame.transform.scale(fish_button_img, (tile_size, tile_size))
-                elif tile == 9:
-                    self.img = pygame.transform.scale(gate_img, (tile_size, tile_size))
+                # a means fish button 1
+                elif tile == 'a':
+                    self.img = pygame.transform.scale(fish_button1_img, (tile_size, tile_size))
+                # s means fish button 2
+                elif tile == 's':
+                    self.img = pygame.transform.scale(fish_button2_img, (tile_size, tile_size))
+                # d means fish button 3
+                elif tile == 'd':
+                    self.img = pygame.transform.scale(fish_button3_img, (tile_size, tile_size))
+                # . means a placeholder image for the top tile of the exit gate
+                elif tile == '.':
+                    self.img = pygame.transform.scale(gate_top_img, (tile_size, tile_size))
+                # / means a placeholder image for the top tile of the exit gate
+                elif tile == '/':
+                    self.img = pygame.transform.scale(gate_bottom_img, (tile_size, tile_size))
+
                 self.rect = self.img.get_rect()
                 self.rect.x = column_count * tile_size
                 self.rect.y = row_count * tile_size
@@ -217,7 +289,7 @@ class Player():
 
         # activate jump ability
         if key[pygame.K_SPACE] and self.y_vel == 0 and time_since_last_ability > 5000:
-            self.y_vel = -20.1
+            self.y_vel = -23.1
             water_jump_sound.set_volume(0.75*sound_multi)
             water_jump_sound.play()
             # storing the time the last ability was used
@@ -240,7 +312,7 @@ class Player():
         # - if the player is falling, it only changes the player's potential y position by the distance between the top of the tile and the bottom of the player
         for tile in world.tile_list:
             # checking if tile is background or real
-            if tile[2] not in (0, 9):
+            if tile[2] not in ('0', '.', '/'):
                 if tile[1].colliderect(self.rect.x+dx, self.rect.y, self.width, self.height):
                     dx = 0
                 if tile[1].colliderect(self.rect.x, self.rect.y+dy, self.width, self.height):
@@ -252,6 +324,9 @@ class Player():
                     elif self.y_vel >= 0:
                         dy = tile[1].top - self.rect.bottom
                         self.y_vel = 0
+                        # jump pad
+                        if tile[2] == 'j':
+                            self.y_vel = -30.1
 
         # updating player model coordinates
         self.rect.x += dx
@@ -299,7 +374,7 @@ class Button():
 
 # ------------------------------fish setup------------------------------
 class Fish():
-    def __init__(self, x1, x2, y1, y2, width):
+    def __init__(self, x1, x2, y1, y2, width, num):
         original_width = fish_img.get_width()
         original_height = fish_img.get_height()
         scale_factor = width/original_width
@@ -309,7 +384,8 @@ class Fish():
         self.rect.y = random.randint(y1, y2)
         self.width = self.img.get_width()
         self.height = self.img.get_height()
-        self.vel = random.randint(2, 5)
+        self.vel = random.randint(3, 5)
+        self.fish_num = num
 
     def update(self):
         # creating potential fish coordinates just like the player
@@ -331,13 +407,19 @@ class Fish():
         # checking for collision with tiles (just like the player)
         for tile in world.tile_list:
             # checking if tile is background or water (fish don't collide with these tiles)
-            if tile[2] != 0 and tile[2] != 2:
+            if tile[2] != '0' and tile[2] != '7':
                 # if collide on x axis, stop moving in the x direction (horozontally)
                 if tile[1].colliderect(self.rect.x+dx, self.rect.y, self.width, self.height):
                     dx = 0
                     # checking if fish touched button
-                    if tile[2] == 3:
-                        return True
+                    if self.fish_num == 1:
+                        if tile[2] == 'a':
+                            return True
+                    elif self.fish_num == 2:
+                        if tile[2] == 's':
+                            return 'True2'
+                        if tile[2] == 'd':
+                            return 'True3'
                 # if collide on y axis, stop moving in the y direction (vertically)
                 if tile[1].colliderect(self.rect.x, self.rect.y+dy, self.width, self.height):
                     dy = 0
@@ -372,7 +454,7 @@ class Gate():
 
 # starting x and y position of the player
 player_x_start = tile_size*22
-player_y_start = tile_size*1
+player_y_start = tile_size*7
 
 # changing variables for player position
 player_x = player_x_start
@@ -385,12 +467,14 @@ player = Player(player_x, player_y)
 lvl1 = World(lvl1_data)
 lvl1_activated = World(lvl1_activated_data)
 lvl2 = World(lvl2_data)
+lvl2_activated = World(lvl2_activated_data)
 
 # loading exit gate
-gate = Gate(tile_size*24, tile_size*1.25, tile_size, tile_size*1.75)
+gate = Gate(tile_size*24, tile_size*1, tile_size, tile_size*2)
 
 # loading fish
-fish1 = Fish(tile_size*11, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75)
+fish1 = Fish(tile_size*11, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75, 1)
+fish2 = Fish(tile_size*8, tile_size*10, tile_size*1, tile_size*3, tile_size*0.75, 2)
 
 # loading different buttons
 # - start menu buttons
@@ -430,11 +514,13 @@ while run:
         else:
             world = lvl1
     elif current_lvl == 2:
-        world = lvl2
+        if fish_button_activated == True:
+            world = lvl2_activated
+        else:
+            world = lvl2
 
     # if the transition has started
     if transitioning:
-        # current_lvl += 1
         transition_end()
         transitioning = False
         paused = False
@@ -447,8 +533,12 @@ while run:
         #  - if the start button is pressed, the start menu closes and game starts
         if start_button.draw():
             start_menu = False
-            paused = False
             player.start(player_x_start, player_y_start)
+            paused = True
+            current_lvl += 1
+            fish_button_activated = False
+            transitioning = True
+            transition_start()
         # drawing quit button
         #  - if the quit button is pressed, the game window stops/closes
         if quit_button.draw():
@@ -461,7 +551,12 @@ while run:
             # drawing fish
             fish1.draw()
             # drawing exit gate
-            gate.draw(tile_size*24, tile_size*1.25)
+            gate.draw(tile_size*24, tile_size*1)
+        elif current_lvl == 2:
+            # drawing fish
+            fish2.draw()
+            # drawing exit gate
+            gate.draw(tile_size*24, tile_size*12)
             
         # drawing player
         player.draw()
@@ -507,10 +602,24 @@ while run:
             player_y = player.player_xy_bottom()[1]
             player_bottom = player.player_xy_bottom()[2]
 
-            if current_lvl == 1:
-                # updating fish
-                if fish1.update():
-                    fish_button_activated = True
+            if current_lvl in (1, 2, 3):
+                if current_lvl == 1:
+                    # updating fish
+                    if fish1.update():
+                        fish_button_activated = True
+                elif current_lvl == 2:
+                    print(fish_button_activated)
+                    # updating fish
+                    if fish2.update() == 'True2':
+                        if fish_button_activated == False:
+                            fish_button_activated = 2
+                        elif fish_button_activated == 3:
+                            fish_button_activated = True
+                    if fish2.update() == 'True3':
+                        if fish_button_activated == False:
+                            fish_button_activated = 3
+                        elif fish_button_activated == 2:
+                            fish_button_activated = True
 
                 # checking to see if "a" is being pressed
                 fish_attracting = fish_attract_check()
@@ -519,6 +628,7 @@ while run:
             if gate.update():
                 paused = True
                 current_lvl += 1
+                fish_button_activated = False
                 player.start(player_x_start, player_y_start)
                 transitioning = True
                 transition_start()
