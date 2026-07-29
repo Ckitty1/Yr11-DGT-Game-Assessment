@@ -71,8 +71,8 @@ wj_button_not_ready_img = pygame.image.load('images/water jump button not ready.
 
 # MENU IMAGES
 # start menu images
-start_img = pygame.image.load('images/start.jpg')
-quit_img = pygame.image.load('images/quit.jpg')
+start_img = pygame.image.load('images/start.png')
+quit_img = pygame.image.load('images/quit.png')
 
 # pause manu images
 pause_img = pygame.image.load('images/pause.png')
@@ -113,7 +113,7 @@ option_menu = False
 confirm_home_menu = False
 
 # level variables
-current_lvl = 2
+current_lvl = 0
 transitioning = False
 fish_attracting = False
 fish_button_activated = False
@@ -122,8 +122,7 @@ fish_button_activated = False
 sound_multi = 1
 
 # player variables
-current_son = 'Tangaroa'
-current_ability = 'Sea Control'
+current_character = 1
 # ------------------------------------------------------------------------------------------
 
 # ------------------------------functions------------------------------
@@ -306,7 +305,7 @@ class Player():
         self.y_vel = 0
         # water jump ability ("wj" = "water jump")
         self.wj_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
-        self.wj_cooldown = 5000
+        self.wj_cooldown = 4000
         self.wj_last_ability = 0
         self.wj_next_ability = 0
         self.wj_next_ability_in = 0
@@ -325,21 +324,22 @@ class Player():
             self.y_vel = -12.1
 
         # ------------------------------Water Jump Ability------------------------------
-        # calculating time since last jump ability
-        time_since_last_ability = pygame.time.get_ticks()-self.wj_last_ability
+        if current_character == 1:
+            # calculating time since last jump ability
+            time_since_last_wj = pygame.time.get_ticks()-self.wj_last_ability
 
-        # activate jump ability
-        if key[pygame.K_SPACE] and self.y_vel == 0 and time_since_last_ability > self.wj_cooldown:
-            self.y_vel = -19.1
-            water_jump_sound.set_volume(0.75*sound_multi)
-            water_jump_sound.play()
-            # storing the time the last ability was used
-            self.wj_last_ability = pygame.time.get_ticks()
-            # storing the next time the ability is ready (in ms)
-            self.wj_next_ability = self.wj_last_ability+self.wj_cooldown
+            # activate jump ability
+            if key[pygame.K_SPACE] and self.y_vel == 0 and time_since_last_wj > self.wj_cooldown:
+                self.y_vel = -19.1
+                water_jump_sound.set_volume(0.75*sound_multi)
+                water_jump_sound.play()
+                # storing the time the last ability was used
+                self.wj_last_ability = pygame.time.get_ticks()
+                # storing the next time the ability is ready (in ms)
+                self.wj_next_ability = self.wj_last_ability+self.wj_cooldown
 
-        # calculating and storing time until next ability
-        self.wj_next_ability_in = self.wj_next_ability-pygame.time.get_ticks()
+            # calculating and storing time until next ability
+            self.wj_next_ability_in = self.wj_next_ability-pygame.time.get_ticks()
         # ------------------------------------------------------------------------------
 
         # gravity
@@ -385,14 +385,15 @@ class Player():
         # drawing character onto screen
         win.blit(self.img, self.rect)
 
-        # drawing ability button timer
-        win.blit(self.wj_img, (tile_size*0.25, tile_size*1.5))
+        if current_character == 1:
+            # drawing ability button timer
+            win.blit(self.wj_img, (tile_size*0.25, tile_size*1.5))
 
-        if round(self.wj_next_ability_in/1000) <= 0:
-            self.wj_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
-        else:
-            self.wj_img = pygame.transform.scale(wj_button_not_ready_img, (tile_size, tile_size))
-            draw_text(f'{round(self.wj_next_ability_in/1000)}', pixel_font, white, tile_size*0.63, tile_size*1.65, tile_size/3)
+            if round(self.wj_next_ability_in/1000) <= -1:
+                self.wj_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
+            else:
+                self.wj_img = pygame.transform.scale(wj_button_not_ready_img, (tile_size, tile_size))
+                draw_text(f'{round(self.wj_next_ability_in/1000+1)}', pixel_font, white, tile_size*0.63, tile_size*1.65, tile_size/3)
 # ------------------------------------------------------------------------
 
 # ------------------------------button setup------------------------------
@@ -538,8 +539,8 @@ fish4 = Fish(tile_size*4, tile_size*10, tile_size*8, tile_size*10, tile_size*0.7
 
 # loading different buttons
 # - start menu buttons
-start_button = Button(start_img, win_width/2-tile_size*2.5, win_height/2.5, tile_size*5, tile_size*2)
-quit_button = Button(quit_img, win_width/2-tile_size*2.5, win_height/2.5+tile_size*5, tile_size*5, tile_size*2)
+start_button = Button(start_img, win_width/2-tile_size*6.22, tile_size*5.5, tile_size*12.44, tile_size*3.5)
+quit_button = Button(quit_img, win_width/2-tile_size*1.92, tile_size*11, tile_size*3.83, tile_size*1.5)
 # - in level button
 pause_button = Button(pause_img, tile_size*0.25, tile_size*0.25, tile_size, tile_size)
 # - pause screen buttons
@@ -568,13 +569,15 @@ while run:
     win.fill(black)
 
     # showing different levels on screen
+    if start_menu:
+        world = World(levels.lvl0_data)
     if current_lvl == 1:
         if fish_button_activated:
             world = World(levels.lvl1_activated_data)
         else:
             world = World(levels.lvl1_data)
     elif current_lvl == 2:
-        if fish_button_activated == True:
+        if fish_button_activated == 'True':
             world = World(levels.lvl2_activated_data)
         else:
             world = World(levels.lvl2_data)
@@ -586,6 +589,9 @@ while run:
         else:
             world = World(levels.lvl3_data)
 
+    # drawing level/world
+    world.draw()
+
     # if the transition has started
     if transitioning:
         transition_end()
@@ -594,8 +600,8 @@ while run:
 
     if start_menu:
         # writing the title
-        draw_text('STUCK INBETWEEN', pixel_font, white, win_width/2-tile_size*10, win_height*1/10, tile_size*20)
-
+        draw_text('STUCK IN BETWEEN', pixel_font, dark_brown, win_width/2-tile_size*10-5, tile_size*1.5+5, tile_size*20)
+        draw_text('STUCK IN BETWEEN', pixel_font, light_brown, win_width/2-tile_size*10, tile_size*1.5, tile_size*20)
         # drawing start button
         #  - if the start button is pressed, the start menu closes and game starts
         if start_button.draw():
@@ -611,9 +617,7 @@ while run:
         if quit_button.draw():
             run = False
     else:
-        # drawing level
-        world.draw()
-
+        # (drawing things even when paused)
         if current_lvl == 1:
             # drawing fish
             fish1.draw()
@@ -674,6 +678,7 @@ while run:
             player_y = player.player_xy_bottom()[1]
             player_bottom = player.player_xy_bottom()[2]
 
+            # CHARACTER 1 LEVELS
             if current_lvl in (1, 2, 3):
                 if current_lvl == 1:
                     # updating fish
@@ -687,12 +692,12 @@ while run:
                         if fish_button_activated == False:
                             fish_button_activated = 1
                         elif fish_button_activated == 2:
-                            fish_button_activated = True
+                            fish_button_activated = 'True'
                     if fish2.update() == 'True2':
                         if fish_button_activated == False:
                             fish_button_activated = 2
                         elif fish_button_activated == 1:
-                            fish_button_activated = True
+                            fish_button_activated = 'True'
                 elif current_lvl == 3:
                     # updating fish
                     # if the fish touches its respective button, the level changes to open up different parts
