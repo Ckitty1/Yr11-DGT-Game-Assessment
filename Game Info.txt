@@ -1,10 +1,13 @@
 STUCK IN BETWEEN
 
 - 3 levels per character
+- arrow keys to move
+- Space bar for wj
+- "a" for fish attraction and/or vc
 
 CHARACTER ONE (Tangaroa) - god of the sea
 - Abilities
-. Water Jump
+. Water Jump (wj)
 . Fish Attraction
 
 CHARACTER TWO (Tūmatauenga) - god of war and human activities
@@ -14,5 +17,5 @@ CHARACTER TWO (Tūmatauenga) - god of war and human activities
 
 CHARACTER THREE (Tāne-Mahuta) - god of forests
 - Abilities
-. 
+. Vine climb (vc)
 . 
