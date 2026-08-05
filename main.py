@@ -109,6 +109,8 @@ pixel_font = pygame.font.Font('fonts/Tiny5-Regular.ttf', 999)
 
 # ------------------------------loading sounds------------------------------
 water_jump_sound = pygame.mixer.Sound('sounds/water splash.wav')
+bounce_sound = pygame.mixer.Sound('sounds/bounce.wav')
+vines_sound = pygame.mixer.Sound('sounds/vines.wav')
 # --------------------------------------------------------------------------
 
 # ------------------------------defining colours------------------------------
@@ -131,7 +133,7 @@ option_menu = False
 confirm_home_menu = False
 
 # level variables
-current_lvl = 1
+current_lvl = 4
 transitioning = False
 fish_button_activated = False
 
@@ -355,6 +357,7 @@ class Player():
         # vine climb ability variables ("vc" = "vine climb")
         self.vc = False
         self.on_ceiling = False
+        self.on_wall = False
         self.tile_above = False
 
     def update(self, gravity):
@@ -397,7 +400,7 @@ class Player():
             # activating jump ability if 'k' is pressed
             if key[pygame.K_SPACE] and self.y_vel == 0 and time_since_last_wj > self.wj_cooldown:
                 self.y_vel = -19.1
-                water_jump_sound.set_volume(0.75*sound_multi)
+                water_jump_sound.set_volume(sound_multi)
                 water_jump_sound.play()
                 # storing the time the last ability was used
                 self.wj_last_ability = pygame.time.get_ticks()
@@ -415,9 +418,15 @@ class Player():
                 self.vc = True
                 if self.on_ceiling and self.tile_above:
                     self.gravity = False
+                    self.on_wall = False
             elif not key[pygame.K_a]:
                 self.vc = False
                 self.gravity = True
+                self.on_wall = False
+            # playing vine climbing sound effect
+            if self.vc and (self.on_ceiling or self.on_wall):
+                vines_sound.set_volume(sound_multi*0.5)
+                vines_sound.play()
         # ------------------------------------------------------------------------------
 
         # gravity
@@ -444,6 +453,7 @@ class Player():
                     dx = 0
                     # moving player up when against a wall during vine climb ability
                     if self.vc and not self.on_ceiling:
+                        self.on_wall = True
                         self.y_vel = 0.1
                         dy -= self.vel
                 # vertical collision
@@ -463,9 +473,12 @@ class Player():
                         dy = tile[1].top - self.rect.bottom
                         self.y_vel = 0
                         self.on_ceiling = False
-                        # jump pad
+                        self.on_wall = False
+                        # jump pad launches player up
                         if tile[2] == 'j':
                             self.y_vel = -30.1
+                            bounce_sound.set_volume(sound_multi)
+                            bounce_sound.play()
 
         # updating player model coordinates
         self.rect.x += dx
@@ -736,7 +749,7 @@ while run:
             gate.draw(tile_size*24, tile_size*12)
         elif current_lvl == 4:
             # drawing exit gate
-            gate.draw(tile_size, tile_size)
+            gate.draw(tile_size*24, tile_size*4)
         # drawing player
         player.draw()
 
