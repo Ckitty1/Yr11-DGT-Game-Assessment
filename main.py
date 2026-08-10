@@ -24,8 +24,9 @@ pygame.display.set_caption('Stuck Inbetween')
 # LEVEL/WORLD IMAGES
 # text/other images
 arrows_to_move_img = pygame.image.load('images/arrows to move.png')
-a_for_ability_img = pygame.image.load('images/a for ability.png')
+a_to_attract_fish_img = pygame.image.load('images/a to attract fish.png')
 space_for_water_jump_img = pygame.image.load('images/space for water jump.png')
+a_to_climb_img = pygame.image.load('images/a to climb.png')
 
 arrow_left_img = pygame.transform.rotate(pygame.image.load('images/arrow right.png'), 180)
 
@@ -82,10 +83,18 @@ jump_pad_img = pygame.transform.rotate(pygame.image.load('images/jump pad bottom
 
 # PLAYER IMAGES
 # player model
-player_img = dirt_img
+player1_right1_img = pygame.image.load('images/player1 right1.png')
+player1_left1_img = pygame.transform.flip(player1_right1_img, True, False)
+player3_right1_img = pygame.image.load('images/player3 right1.png')
+player3_left1_img = pygame.transform.flip(player3_right1_img, True, False)
 # water jump ability button
 wj_button_ready_img = pygame.image.load('images/water jump button ready.png')
 wj_button_not_ready_img = pygame.image.load('images/water jump button not ready.png')
+# water jump animation
+wj_img_list = []
+for i in range(1, 10):
+    img = pygame.image.load(f'images/wj frames/water jump {i}.png')
+    wj_img_list.append(img)
 
 # MENU IMAGES
 # start menu images
@@ -133,7 +142,7 @@ option_menu = False
 confirm_home_menu = False
 
 # level variables
-current_lvl = 4
+current_lvl = 1
 transitioning = False
 fish_button_activated = False
 
@@ -338,7 +347,10 @@ class Player():
         self.start(x, y)
 
     def start(self, x, y):
-        self.img = pygame.transform.scale(player_img, (tile_size, tile_size*1.75))
+        if current_character == 1:
+            self.img = pygame.transform.scale(player1_left1_img, (tile_size, tile_size*1.7))
+        elif current_character == 3:
+            self.img = pygame.transform.scale(player3_left1_img, (tile_size, tile_size*1.7))
         self.rect = self.img.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -349,11 +361,21 @@ class Player():
         self.gravity = True
         self.first_gravity = False
         # water jump ability variables ("wj" = "water jump")
-        self.wj_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
+        self.wj_button_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
+        self.water_jumping = False
         self.wj_cooldown = 4000
         self.wj_last_ability = 0
         self.wj_next_ability = 0
         self.wj_next_ability_in = 0
+        # - water splash animation
+        self.wj_img = pygame.transform.scale(wj_img_list[0], (tile_size, tile_size*3.5))
+        self.wj_index = 0
+        self.wj_frame_cooldown = 1
+        self.counter = 0
+        self.wj_got_x = False
+        self.wj_x = 0
+        self.wj_got_y = False
+        self.wj_y = 0
         # vine climb ability variables ("vc" = "vine climb")
         self.vc = False
         self.on_ceiling = False
@@ -387,8 +409,18 @@ class Player():
         # player movement using arrow keys (left, right, up for jump)
         if key[pygame.K_LEFT]:
             dx -= self.vel
+            # changing player model on screen facing different directions
+            if current_character == 1:
+                self.img = pygame.transform.scale(player1_left1_img, (tile_size, tile_size*1.7))
+            elif current_character == 3:
+                self.img = pygame.transform.scale(player3_left1_img, (tile_size, tile_size*1.7))
         if key[pygame.K_RIGHT]:
             dx += self.vel
+            # changing player model on screen facing different directions
+            if current_character == 1:
+                self.img = pygame.transform.scale(player1_right1_img, (tile_size, tile_size*1.7))
+            elif current_character == 3:
+                self.img = pygame.transform.scale(player3_right1_img, (tile_size, tile_size*1.7))
         if key[pygame.K_UP] and self.y_vel == 0 and not self.on_ceiling and not self.tile_above:
             self.y_vel = -12.1
 
@@ -397,9 +429,11 @@ class Player():
             # calculating time since last jump ability
             time_since_last_wj = pygame.time.get_ticks()-self.wj_last_ability
 
-            # activating jump ability if 'k' is pressed
+            # activating jump ability if {space} is pressed
             if key[pygame.K_SPACE] and self.y_vel == 0 and time_since_last_wj > self.wj_cooldown:
+                self.water_jumping = True
                 self.y_vel = -19.1
+                # playing water splash sound effect
                 water_jump_sound.set_volume(sound_multi)
                 water_jump_sound.play()
                 # storing the time the last ability was used
@@ -409,6 +443,25 @@ class Player():
 
             # calculating and storing time until next ability
             self.wj_next_ability_in = self.wj_next_ability-pygame.time.get_ticks()
+
+            # setting the animation frame image
+            if self.water_jumping:
+                # obtaining original player position when the water jump starts
+                # saved so that the water jump animation stays in the same place
+                if not self.wj_got_y:
+                    self.wj_got_y = True
+                    self.wj_y = self.rect.bottom - tile_size*3.5
+                if not self.wj_got_x:
+                    self.wj_got_x = True
+                    self.wj_x = self.rect.x
+                self.counter += 1
+                if self.counter > self.wj_frame_cooldown:
+                    self.counter = 0
+                    self.wj_index += 1
+                    if self.wj_index >= len(wj_img_list):
+                        self.water_jumping = False
+                        self.wj_index = 0
+                    self.wj_img = pygame.transform.scale(wj_img_list[self.wj_index], (tile_size, tile_size*3.5))
         # ------------------------------------------------------------------------------
 
         # ------------------------------Vine Climb Ability------------------------------
@@ -458,6 +511,8 @@ class Player():
                         dy -= self.vel
                 # vertical collision
                 if tile[1].colliderect(self.rect.x, self.rect.y+dy, self.width, self.height):
+                    # stopping water jump when hits ceiling or floor
+                    self.water_jumping = False
                     # if jumping, if hitting head
                     if dy < 0 or self.y_vel < 0:
                         # only changing vertical movement by the distance to the tile it would collide with
@@ -469,6 +524,8 @@ class Player():
                             self.on_ceiling = False
                     # if falling, if hitting ground
                     elif self.y_vel >= 0:
+                        self.wj_got_x = False
+                        self.wj_got_y = False
                         # only changing vertical movement by the distance to the tile it would collide with
                         dy = tile[1].top - self.rect.bottom
                         self.y_vel = 0
@@ -493,13 +550,16 @@ class Player():
 
         # drawing wj (water jump) ability button timer onto screen
         if current_character == 1:
-            win.blit(self.wj_img, (tile_size*0.25, tile_size*1.5))
+            win.blit(self.wj_button_img, (tile_size*0.25, tile_size*1.5))
 
             if round(self.wj_next_ability_in/1000) <= -1:
-                self.wj_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
+                self.wj_button_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
             else:
-                self.wj_img = pygame.transform.scale(wj_button_not_ready_img, (tile_size, tile_size))
+                self.wj_button_img = pygame.transform.scale(wj_button_not_ready_img, (tile_size, tile_size))
                 draw_text(f'{round(self.wj_next_ability_in/1000+1)}', pixel_font, white, tile_size*0.63, tile_size*1.65, tile_size/3)
+
+            if self.water_jumping:
+                win.blit(self.wj_img, (self.wj_x, self.wj_y))
 # ------------------------------------------------------------------------
 
 # ------------------------------button setup------------------------------
@@ -694,6 +754,9 @@ while run:
             world = World(levels.lvl3_data)
     elif current_lvl == 4:
         world = World(levels.lvl4_data)
+    elif current_lvl == 5:
+        world = World(levels.lvl5_data)
+    
     if start_menu:
         world = World(levels.lvl0_data)
 
@@ -729,13 +792,13 @@ while run:
             fish1.draw()
             # drawing exit gate
             gate.draw(tile_size*24, tile_size*1)
-            # drawing key instructions on the screen ("arrows to move" & "'a' for ability" & "space for water jump")
+            # drawing key instructions on the screen ("arrows to move" & "'a' to attract fish" & "space for water jump")
             if fish_button_activated:
                 win.blit(pygame.transform.scale(space_for_water_jump_img, (tile_size*5, tile_size*1.31)), (tile_size*3.5, tile_size*1.5))
                 win.blit(pygame.transform.scale(arrow_left_img, (tile_size*1.75, tile_size*0.5)), (tile_size*1.5, tile_size*1.83))
             else:
                 win.blit(pygame.transform.scale(arrows_to_move_img, (tile_size*8, tile_size*2.125)), (tile_size*2.5, tile_size*1.5))
-                win.blit(pygame.transform.scale(a_for_ability_img, (tile_size*4, tile_size/2)), (tile_size*20.75, tile_size*13.25))
+                win.blit(pygame.transform.scale(a_to_attract_fish_img, (tile_size*6, tile_size)), (tile_size*18.75, tile_size*13))
         elif current_lvl == 2:
             # drawing fish
             fish2.draw()
@@ -748,6 +811,11 @@ while run:
             # drawing exit gate
             gate.draw(tile_size*24, tile_size*12)
         elif current_lvl == 4:
+            # drawing exit gate
+            gate.draw(tile_size*24, tile_size*1)
+            # drawing key instructions on the screen ("'a' to climb")
+            win.blit(pygame.transform.scale(a_to_climb_img, (tile_size*4, tile_size/3*2)), (tile_size*20.5, tile_size*4.75))
+        elif current_lvl == 5:
             # drawing exit gate
             gate.draw(tile_size*24, tile_size*4)
         # drawing player
