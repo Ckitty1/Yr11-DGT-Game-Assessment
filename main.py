@@ -147,9 +147,10 @@ paused = True
 pause_menu = False
 option_menu = False
 confirm_home_menu = False
+r_pressed = False
 
 # level variables
-current_lvl = 7
+current_lvl = 1
 transitioning = False
 fish_button_activated = False
 
@@ -591,11 +592,13 @@ class Player():
         return (self.rect.x, self.rect.y, self.rect.bottom)
 
     def draw(self):
+        global current_lvl
         # drawing character onto screen
         win.blit(self.img, self.rect)
 
-        # drawing wj (water jump) ability button timer onto screen
-        win.blit(self.wj_button_img, (tile_size*0.25, tile_size*1.5))
+        if current_lvl in (1, 2, 3, 7):
+            # drawing wj (water jump) ability button timer onto screen
+            win.blit(self.wj_button_img, (tile_size*0.25, tile_size*1.5))
 
         if round(self.wj_next_ability_in/1000) <= -1:
             self.wj_button_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
@@ -654,13 +657,16 @@ class Fish():
         original_height = fish_img.get_height()
         scale_factor = width/original_width
         self.img = pygame.transform.scale(fish_img, (width, original_height*scale_factor))
-        self.rect = self.img.get_rect()
-        self.rect.x = random.randint(x1, x2)
-        self.rect.y = random.randint(y1, y2)
         self.width = self.img.get_width()
         self.height = self.img.get_height()
         self.vel = 3
         self.fish_num = num
+        self.start(x1, x2, y1, y2)
+
+    def start(self, x1, x2, y1, y2):
+        self.rect = self.img.get_rect()
+        self.rect.x = random.randint(x1, x2)
+        self.rect.y = random.randint(y1, y2)
 
     def update(self):
         # creating potential fish coordinates just like the player
@@ -843,7 +849,7 @@ while run:
         if quit_button.draw():
             run = False
     else:
-        # (drawing things even when paused)
+        # (drawing things when paused and unpaused)
         if current_lvl == 1:
             # drawing fish
             fish1.draw()
@@ -891,7 +897,7 @@ while run:
                 # drawing 'PAUSE'
                 draw_text('PAUSED', pixel_font, light_brown, win_width/2-tile_size*5, tile_size*3, tile_size*10)
                 # drawing home button
-                # - if home button is pressed, a 
+                # - if home button is pressed, it goes back to the main/start menu
                 if home_button.draw():
                     pause_menu = False
                     confirm_home_menu = True
@@ -901,6 +907,19 @@ while run:
                     pause_menu = False
                     paused = False
                     player.start(player_x_start, player_y_start)
+                    fish_button_activated = False
+                    if current_lvl == 1:
+                        fish1.start(tile_size*11, tile_size*24, tile_size*11, tile_size*13)
+                        world = World(levels.lvl1_data)
+                    elif current_lvl == 2:
+                        fish2.start(tile_size*8, tile_size*10, tile_size*2, tile_size*3)
+                        world = World(levels.lvl2_data)
+                    elif current_lvl == 3:
+                        fish3.start(tile_size*14, tile_size*17, tile_size*6, tile_size*7)
+                        fish4.start(tile_size*4, tile_size*10, tile_size*8, tile_size*10)
+                        world = World(levels.lvl3_data)
+                    elif current_lvl == 7:
+                        world = World(levels.lvl7_data)
                 # drawing resume button
                 # - if resume button is pressed, the level continues with no change
                 elif resume_button.draw():
@@ -970,6 +989,25 @@ while run:
                 player.start(player_x_start, player_y_start)
                 transitioning = True
                 transition_start()
+
+            if key[pygame.K_r] and not r_pressed:
+                player.start(player_x_start, player_y_start)
+                fish_button_activated = False
+                if current_lvl == 1:
+                    fish1.start(tile_size*11, tile_size*24, tile_size*11, tile_size*13)
+                    world = World(levels.lvl1_data)
+                elif current_lvl == 2:
+                    fish2.start(tile_size*8, tile_size*10, tile_size*2, tile_size*3)
+                    world = World(levels.lvl2_data)
+                elif current_lvl == 3:
+                    fish3.start(tile_size*14, tile_size*17, tile_size*6, tile_size*7)
+                    fish4.start(tile_size*4, tile_size*10, tile_size*8, tile_size*10)
+                    world = World(levels.lvl3_data)
+                elif current_lvl == 7:
+                    world = World(levels.lvl7_data)
+                r_pressed = True
+            elif not key[pygame.K_r]:
+                r_pressed = False
 
             # if pause button is pressed, open pause menu and pause all game updates
             if pause_button.draw() or key[pygame.K_ESCAPE]:
