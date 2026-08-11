@@ -149,7 +149,7 @@ option_menu = False
 confirm_home_menu = False
 
 # level variables
-current_lvl = 6
+current_lvl = 7
 transitioning = False
 fish_button_activated = False
 
@@ -393,8 +393,11 @@ class Player():
         self.on_ceiling = False
         self.on_wall = False
         self.tile_above = False
+        # character switch variables
+        self.s_pressed = False
 
     def update(self, gravity):
+        global current_character
         # variable to control whether gravity should be active or not
         if self.first_gravity == False:
             self.gravity = gravity
@@ -445,6 +448,27 @@ class Player():
         
         if key[pygame.K_UP] and self.y_vel == 0 and not self.on_ceiling and not self.tile_above:
             self.y_vel = -12.1
+        # ------------------------------CHARACTER SWITCH------------------------------
+        if current_lvl == 7:
+            # if 's' is pressed, it checks which character it's currently on and switches it to the other one
+            if key[pygame.K_s] and not self.s_pressed:
+                if current_character == 1:
+                    current_character = 3
+                    if self.facing_right:
+                        self.img = pygame.transform.scale(player3_right1_img, (tile_size, tile_size*1.7))
+                    elif self.facing_left:
+                        self.img = pygame.transform.scale(player3_left1_img, (tile_size, tile_size*1.7))
+                elif current_character == 3:
+                    current_character = 1
+                    self.vc = False
+                    if self.facing_right:
+                        self.img = pygame.transform.scale(player1_right1_img, (tile_size, tile_size*1.7))
+                    elif self.facing_left:
+                        self.img = pygame.transform.scale(player1_left1_img, (tile_size, tile_size*1.7))
+                self.s_pressed = True
+            elif not key[pygame.K_s]:
+                self.s_pressed = False
+        # ----------------------------------------------------------------------------
 
         # ------------------------------Water Jump Ability------------------------------
         if current_character == 1:
@@ -463,27 +487,27 @@ class Player():
                 # storing the next time the ability is ready (in ms)
                 self.wj_next_ability = self.wj_last_ability+self.wj_cooldown
 
-            # calculating and storing time until next ability
-            self.wj_next_ability_in = self.wj_next_ability-pygame.time.get_ticks()
+        # calculating and storing time until next ability
+        self.wj_next_ability_in = self.wj_next_ability-pygame.time.get_ticks()
 
-            # setting the animation frame image
-            if self.water_jumping:
-                # obtaining original player position when the water jump starts
-                # saved so that the water jump animation stays in the same place
-                if not self.wj_got_y:
-                    self.wj_got_y = True
-                    self.wj_y = self.rect.bottom - tile_size*3.5
-                if not self.wj_got_x:
-                    self.wj_got_x = True
-                    self.wj_x = self.rect.x
-                self.counter += 1
-                if self.counter > self.wj_frame_cooldown:
-                    self.counter = 0
-                    self.wj_index += 1
-                    if self.wj_index >= len(wj_img_list):
-                        self.water_jumping = False
-                        self.wj_index = 0
-                    self.wj_img = pygame.transform.scale(wj_img_list[self.wj_index], (tile_size, tile_size*3.5))
+        # setting the animation frame image
+        if self.water_jumping:
+            # obtaining original player position when the water jump starts
+            # saved so that the water jump animation stays in the same place
+            if not self.wj_got_y:
+                self.wj_got_y = True
+                self.wj_y = self.rect.bottom - tile_size*3.5
+            if not self.wj_got_x:
+                self.wj_got_x = True
+                self.wj_x = self.rect.x
+            self.counter += 1
+            if self.counter > self.wj_frame_cooldown:
+                self.counter = 0
+                self.wj_index += 1
+                if self.wj_index >= len(wj_img_list):
+                    self.water_jumping = False
+                    self.wj_index = 0
+                self.wj_img = pygame.transform.scale(wj_img_list[self.wj_index], (tile_size, tile_size*3.5))
         # ------------------------------------------------------------------------------
 
         # ------------------------------Vine Climb Ability------------------------------
@@ -571,25 +595,24 @@ class Player():
         win.blit(self.img, self.rect)
 
         # drawing wj (water jump) ability button timer onto screen
-        if current_character == 1:
-            win.blit(self.wj_button_img, (tile_size*0.25, tile_size*1.5))
+        win.blit(self.wj_button_img, (tile_size*0.25, tile_size*1.5))
 
-            if round(self.wj_next_ability_in/1000) <= -1:
-                self.wj_button_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
-            else:
-                self.wj_button_img = pygame.transform.scale(wj_button_not_ready_img, (tile_size, tile_size))
-                draw_text(f'{round(self.wj_next_ability_in/1000+1)}', pixel_font, white, tile_size*0.63, tile_size*1.65, tile_size/3)
+        if round(self.wj_next_ability_in/1000) <= -1:
+            self.wj_button_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
+        else:
+            self.wj_button_img = pygame.transform.scale(wj_button_not_ready_img, (tile_size, tile_size))
+            draw_text(f'{round(self.wj_next_ability_in/1000+1)}', pixel_font, white, tile_size*0.63, tile_size*1.65, tile_size/3)
 
-            # drawing fishing rod next to player when attracting fish
-            if fish_attracting:
-                if self.facing_right:
-                    win.blit(self.fishing_rod_img, (self.rect.x+tile_size-7, self.rect.y+self.rect.height/2-7))
-                elif self.facing_left:
-                    win.blit(self.fishing_rod_img, (self.rect.x-tile_size*0.5+7, self.rect.y+self.rect.height/2-7))
+        # drawing fishing rod next to player when attracting fish
+        if fish_attracting:
+            if self.facing_right:
+                win.blit(self.fishing_rod_img, (self.rect.x+tile_size-7, self.rect.y+self.rect.height/2-7))
+            elif self.facing_left:
+                win.blit(self.fishing_rod_img, (self.rect.x-tile_size*0.5+7, self.rect.y+self.rect.height/2-7))
 
-            # drawing the water jump animation
-            if self.water_jumping:
-                win.blit(self.wj_img, (self.wj_x, self.wj_y))
+        # drawing the water jump animation
+        if self.water_jumping:
+            win.blit(self.wj_img, (self.wj_x, self.wj_y))
 # ------------------------------------------------------------------------
 
 # ------------------------------button setup------------------------------
@@ -788,6 +811,8 @@ while run:
         world = World(levels.lvl5_data)
     elif current_lvl == 6:
         world = World(levels.lvl6_data)
+    elif current_lvl == 7:
+        world = World(levels.lvl7_data)
     
     if start_menu:
         world = World(levels.lvl0_data)
@@ -851,6 +876,9 @@ while run:
             # drawing exit gate
             gate.draw(tile_size*24, tile_size*4)
         elif current_lvl == 6:
+            # drawing exit gate
+            gate.draw(tile_size*2, tile_size*2)
+        elif current_lvl == 7:
             # drawing exit gate
             gate.draw(tile_size*2, tile_size*2)
         # drawing player
