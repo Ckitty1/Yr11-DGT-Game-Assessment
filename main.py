@@ -27,6 +27,7 @@ arrows_to_move_img = pygame.image.load('images/arrows to move.png')
 a_to_attract_fish_img = pygame.image.load('images/a to attract fish.png')
 space_for_water_jump_img = pygame.image.load('images/space for water jump.png')
 a_to_climb_img = pygame.image.load('images/a to climb.png')
+s_to_switch_img = pygame.image.load('images/s to switch.png')
 
 arrow_left_img = pygame.transform.rotate(pygame.image.load('images/arrow right.png'), 180)
 
@@ -53,6 +54,9 @@ dirt_bottom_corners_img = pygame.image.load('images/dirt bottom corners.png')
 dirt_top_corners_img = pygame.transform.rotate(dirt_bottom_corners_img, 180)
 dirt_left_corners_img = pygame.transform.rotate(dirt_bottom_corners_img, 270)
 dirt_right_corners_img = pygame.transform.rotate(dirt_bottom_corners_img, 90)
+# 3 edge dirts
+dirt_bottom_right_left_edge_img = pygame.image.load('images/dirt bottom right left edge.png')
+dirt_top_right_left_edge_img = pygame.transform.rotate(dirt_bottom_right_left_edge_img, 180)
 # mixtures
 dirt_top_bottom_right_img = pygame.image.load('images/dirt top edge & bottom right corner.png')
 dirt_bottom_top_left_img = pygame.transform.rotate(dirt_top_bottom_right_img, 180)
@@ -149,7 +153,7 @@ confirm_home_menu = False
 r_pressed = False
 
 # level variables
-current_lvl = 5
+current_lvl = 7
 transitioning = False
 fish_button_activated = False
 
@@ -283,6 +287,10 @@ class World():
                     self.img = pygame.transform.scale(dirt_bottom_top_img, (tile_size, tile_size))
                 elif tile == '7':
                     self.img = pygame.transform.scale(dirt_right_left_img, (tile_size, tile_size))
+                elif tile == '>': # -----
+                    self.img = pygame.transform.scale(dirt_top_right_left_edge_img, (tile_size, tile_size))
+                elif tile == '<':
+                    self.img = pygame.transform.scale(dirt_bottom_right_left_edge_img, (tile_size, tile_size))
                 elif tile == '-': # mixtures
                     self.img = pygame.transform.scale(dirt_top_bottom_right_img, (tile_size, tile_size))
                 elif tile == '_':
@@ -921,6 +929,8 @@ while run:
             fish5.draw()
             # drawing exit gate
             gate.draw(tile_size*24, tile_size*12)
+            # drawing key instructions on sthe screen ("'s' to switch")
+            win.blit(pygame.transform.scale(s_to_switch_img, (tile_size*4, tile_size/3*2)), (tile_size*20.5, tile_size*4.75))
         # drawing player
         player.draw()
 
@@ -930,6 +940,8 @@ while run:
                 draw_pause_background()
                 # drawing 'PAUSE'
                 draw_text('PAUSED', pixel_font, light_brown, win_width/2-tile_size*5, tile_size*3, tile_size*10)
+                # drawing (r) above the restart button
+                draw_text('(R)', pixel_font, light_brown, win_width/2-tile_size*0.75, tile_size*7, tile_size*1.5)
                 # drawing home button
                 # - if home button is pressed, it goes back to the main/start menu
                 if home_button.draw():
@@ -1025,7 +1037,7 @@ while run:
                     fish_attracting = False
 
             # if the player falls off the bottom of the screen, death/restart
-            if player_y > tile_size*17:
+            if player_y > tile_size*17 or player_y < 0:
                 fish_button_activated = False
                 player.start(player_x_start, player_y_start)
                 fish5.start(tile_size*7, tile_size*8, tile_size*1, tile_size*2)
