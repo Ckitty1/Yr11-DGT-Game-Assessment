@@ -6,9 +6,8 @@ pygame.mixer.init()
 # importing other libraries
 import random
 
-# ------------------------------importing level layouts from "levels.py"------------------------------
+# importing the levels.py file so that I can use the level data stored there
 import levels
-# ----------------------------------------------------------------------------------------------------
 
 # ------------------------------window setup------------------------------
 # setting screen size
@@ -108,6 +107,7 @@ player3_left1_img = pygame.transform.flip(player3_right1_img, True, False)
 
 # MENU IMAGES
 # start menu images
+start_menu_all_img = pygame.transform.scale(pygame.image.load('images/start menu all.png'), (win_width, win_height))
 start_img = pygame.image.load('images/start.png')
 quit_img = pygame.image.load('images/quit.png')
 
@@ -124,6 +124,7 @@ no_img = pygame.image.load('images/no.png')
 
 # ------------------------------loading fonts------------------------------
 pixel_font = pygame.font.Font('fonts/Tiny5-Regular.ttf', 999)
+googlesans_font = pygame.font.Font('fonts/GoogleSans-Bold.ttf', 999)
 # -------------------------------------------------------------------------
 
 # ------------------------------loading sounds------------------------------
@@ -144,6 +145,9 @@ light_brown = (110,63,1)
 clock = pygame.time.Clock()
 fps = 60
 
+# credits variables
+credits_running = False
+
 # menu variables
 start_menu = True
 paused = True
@@ -153,7 +157,7 @@ confirm_home_menu = False
 r_pressed = False
 
 # level variables
-current_lvl = 7
+current_lvl = 1
 transitioning = False
 fish_button_activated = False
 
@@ -194,7 +198,7 @@ def transition_start():
         win.blit(rect_surface, (0, 0))
         opacity += fade_speed
         pygame.display.update()
-        pygame.time.delay(17)
+        clock.tick(fps)
         if opacity > 255:
             break
 
@@ -209,10 +213,12 @@ def transition_end():
         rect_surface.set_alpha(opacity)
         world.draw()
         player.draw()
+        if start_menu == True:
+            win.blit(start_menu_all_img, (0, 0))
         win.blit(rect_surface, (0, 0))
         opacity -= fade_speed
         pygame.display.update()
-        pygame.time.delay(17)
+        clock.tick(fps)
         if opacity < 0:
             break
 
@@ -222,6 +228,52 @@ def fish_attract_check():
         return True
     else:
         return False
+
+# function to run the scrolling credits at the end of the game
+def run_credits():
+    credits_lines = [
+        'T H E   E N D',
+        ' ',
+        "Luke Low - Code",
+        "Luke Low - In game art",
+        ' ',
+        "Coding with Ross (YT channel) - Pygame tutorials",
+        'Freesound (freesound.org) - In-game sound effects',
+        ' ',
+        'G A M E   T E S T E R S',
+        'Oliver Tan',
+        'Zech Kim',
+        'Isaac Bandara',
+        'Raymond Low (dad)',
+        'Micah Low (brother)'
+    ]
+    rect_surface = pygame.Surface((1400, 850))
+    rect_surface.fill((0,0,0))
+    y = win_height
+    line_list = []
+    line_widths = []
+    for line in credits_lines:
+        text_img = googlesans_font.render(line, True, white)
+        original_height = text_img.get_height()
+        original_width = text_img.get_width()
+        scale_factor = tile_size/original_height
+        img = pygame.transform.scale(text_img, (original_width*scale_factor, original_height*scale_factor))
+        line_list.append((img))
+        line_widths.append((original_width*scale_factor))
+
+    while y > 150-(len(credits_lines)*tile_size*1.3):
+        win.blit(rect_surface, (0, 0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+        for i in range(len(credits_lines)):
+            win.blit(line_list[i], (win.width/2-line_widths[i]/2, y+tile_size*i))
+
+        y -= 1.5
+        pygame.display.update()
+        clock.tick(fps)
 # ---------------------------------------------------------------------
 
 # ------------------------------world setup------------------------------
@@ -613,7 +665,7 @@ class Player():
                         # jump pad launches player up
                         if tile[2] == 'j':
                             self.y_vel = -30.1
-                            bounce_sound.set_volume(sound_multi)
+                            bounce_sound.set_volume(sound_multi*2)
                             bounce_sound.play()
 
         # updating player model coordinates
@@ -819,7 +871,7 @@ while run:
     # getting the pygame list of key presses
     key = pygame.key.get_pressed()
 
-    # setting the frame rate
+    # setting the max frame rate so that the game runs the same on every device
     clock.tick(fps)
 
     # stops the game when the window closes
@@ -865,6 +917,7 @@ while run:
 
     # drawing level/world
     world.draw()
+
     # if the transition has started
     if transitioning:
         transition_end()
@@ -931,6 +984,7 @@ while run:
             gate.draw(tile_size*24, tile_size*12)
             # drawing key instructions on sthe screen ("'s' to switch")
             win.blit(pygame.transform.scale(s_to_switch_img, (tile_size*4, tile_size/3*2)), (tile_size*20.5, tile_size*4.75))
+        
         # drawing player
         player.draw()
 
@@ -938,7 +992,7 @@ while run:
             if pause_menu:
                 # drawing pause menu background
                 draw_pause_background()
-                # drawing 'PAUSE'
+                # drawing 'PAUSED'
                 draw_text('PAUSED', pixel_font, light_brown, win_width/2-tile_size*5, tile_size*3, tile_size*10)
                 # drawing (r) above the restart button
                 draw_text('(R)', pixel_font, light_brown, win_width/2-tile_size*0.75, tile_size*7, tile_size*1.5)
@@ -1024,6 +1078,7 @@ while run:
                         fish_button_activated = 'True1'
                     if fish4.update():
                         fish_button_activated = 'True2'
+                # CHARACTER SWITCH LEVEL
                 elif current_lvl == 7:
                     # updating fish
                     # when fish touches button, it returns true and changes the level
@@ -1036,7 +1091,7 @@ while run:
                 else:
                     fish_attracting = False
 
-            # if the player falls off the bottom of the screen, death/restart
+            # if the player falls off the bottom of the screen or goes above the screen, the player dies/restarts level
             if player_y > tile_size*17 or player_y < 0:
                 fish_button_activated = False
                 player.start(player_x_start, player_y_start)
@@ -1045,12 +1100,23 @@ while run:
 
             # checking to see if player is touching exit gate
             if gate.update():
-                paused = True
-                current_lvl += 1
-                fish_button_activated = False
-                player.start(player_x_start, player_y_start)
-                transitioning = True
-                transition_start()
+                if current_lvl == 7:
+                    paused = True
+                    fish_button_activated = False
+                    current_lvl = 1
+                    transition_start()
+                    credits_running = True
+                    run_credits()
+                    credits_running = False
+                    start_menu = True
+                    transition_end()
+                else:
+                    paused = True
+                    current_lvl += 1
+                    fish_button_activated = False
+                    player.start(player_x_start, player_y_start)
+                    transitioning = True
+                    transition_start()
 
             if key[pygame.K_r] and not r_pressed:
                 player.start(player_x_start, player_y_start)
