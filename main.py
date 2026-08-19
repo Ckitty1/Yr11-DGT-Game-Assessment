@@ -86,8 +86,13 @@ jump_pad_img = pygame.transform.rotate(pygame.image.load('images/jump pad bottom
 # PLAYER IMAGES
 # CHARACTER 1
 # player model
-player1_right1_img = pygame.image.load('images/player1 right1.png')
-player1_left1_img = pygame.transform.flip(player1_right1_img, True, False)
+player1_right_img_list = []
+player1_left_img_list = []
+for i in range(1, 5):
+    right_img = pygame.transform.scale(pygame.image.load(f'images/player1 frames/player1 right{i}.png'), (50, 85))
+    player1_right_img_list.append(right_img)
+    left_img = pygame.transform.scale(pygame.transform.flip(right_img, True, False), (50, 85))
+    player1_left_img_list.append(left_img)
 # fishing rod
 fishing_rod_right_img = pygame.image.load('images/fishing rod right.png')
 fishing_rod_left_img = pygame.transform.flip(fishing_rod_right_img, True, False)
@@ -102,14 +107,22 @@ for i in range(1, 10):
 
 # CHARACTER 3
 # player model
-player3_right1_img = pygame.image.load('images/player3 right1.png')
-player3_left1_img = pygame.transform.flip(player3_right1_img, True, False)
+player3_right_img_list = []
+player3_left_img_list = []
+for i in range(1, 5):
+    right_img = pygame.transform.scale(pygame.image.load(f'images/player3 frames/player3 right{i}.png'), (50, 85))
+    player3_right_img_list.append(right_img)
+    left_img = pygame.transform.scale(pygame.transform.flip(right_img, True, False), (50, 85))
+    player3_left_img_list.append(left_img)
+player3_right1_climb_img = pygame.transform.scale(pygame.image.load('images/player3 frames/player3 right1 climb.png'), (50, 85))
+player3_left1_climb_img = pygame.transform.flip(player3_right1_climb_img, True, False)
 
 # MENU IMAGES
 # start menu images
 start_menu_all_img = pygame.transform.scale(pygame.image.load('images/start menu all.png'), (win_width, win_height))
 start_img = pygame.image.load('images/start.png')
 quit_img = pygame.image.load('images/quit.png')
+blank_button_img = pygame.image.load('images/blank button.png')
 
 # pause menu images
 pause_img = pygame.image.load('images/pause.png')
@@ -157,7 +170,7 @@ confirm_home_menu = False
 r_pressed = False
 
 # level variables
-current_lvl = 1
+current_lvl = 4
 transitioning = False
 fish_button_activated = False
 
@@ -242,10 +255,11 @@ def run_credits():
         ' ',
         'G A M E   T E S T E R S',
         'Oliver Tan',
+        'Lila Asi',
         'Zech Kim',
         'Isaac Bandara',
-        'Raymond Low (dad)',
-        'Micah Low (brother)'
+        'Raymond Low',
+        'Micah Low'
     ]
     rect_surface = pygame.Surface((1400, 850))
     rect_surface.fill((0,0,0))
@@ -439,9 +453,9 @@ class Player():
     def start(self, x, y):
         # player variables
         if current_character == 1:
-            self.img = pygame.transform.scale(player1_left1_img, (tile_size, tile_size*1.7))
+            self.img = pygame.transform.scale(player1_left_img_list[0], (tile_size, tile_size*1.7))
         elif current_character == 3:
-            self.img = pygame.transform.scale(player3_left1_img, (tile_size, tile_size*1.7))
+            self.img = pygame.transform.scale(player3_left_img_list[0], (tile_size, tile_size*1.7))
         self.rect = self.img.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -453,6 +467,11 @@ class Player():
         self.y_vel = 0
         self.gravity = True
         self.first_gravity = False
+        # - player walking animation
+        self.walk_index = 0
+        self.walk_counter = 0
+        self.walk_frame_cooldown = 5
+        self.on_ground = True
         # fishing rod
         self.fishing_rod_img = pygame.transform.scale(fishing_rod_left_img, (tile_size*0.5, tile_size*0.5))
         # water jump ability variables ("wj" = "water jump")
@@ -466,7 +485,7 @@ class Player():
         self.wj_img = pygame.transform.scale(wj_img_list[0], (tile_size, tile_size*3.5))
         self.wj_index = 0
         self.wj_frame_cooldown = 1
-        self.counter = 0
+        self.wj_counter = 0
         self.wj_got_x = False
         self.wj_x = 0
         self.wj_got_y = False
@@ -504,50 +523,74 @@ class Player():
             self.on_ceiling = False
             self.gravity = True
 
+        # ------------------------------movement------------------------------
         # player movement using arrow keys (left, right, up for jump)
         if key[pygame.K_LEFT]:
             dx -= self.vel
             self.facing_left = True
             self.facing_right = False
-            # changing player model on screen facing different directions
-            if current_character == 1:
-                self.img = pygame.transform.scale(player1_left1_img, (tile_size, tile_size*1.7))
-            elif current_character == 3:
-                self.img = pygame.transform.scale(player3_left1_img, (tile_size, tile_size*1.7))
-            # changing which direction the fishing rod is facing
+            if self.on_ground:
+                self.walk_counter += 1
             self.fishing_rod_img = pygame.transform.scale(fishing_rod_left_img, (tile_size*0.5, tile_size*0.5))
-        
         if key[pygame.K_RIGHT]:
             dx += self.vel
             self.facing_right = True
             self.facing_left = False
-            # changing player model on screen facing different directions
-            if current_character == 1:
-                self.img = pygame.transform.scale(player1_right1_img, (tile_size, tile_size*1.7))
-            elif current_character == 3:
-                self.img = pygame.transform.scale(player3_right1_img, (tile_size, tile_size*1.7))
-            # changing which direction the fishing rod is facing
+            if self.on_ground:
+                self.walk_counter += 1
             self.fishing_rod_img = pygame.transform.scale(fishing_rod_right_img, (tile_size*0.5, tile_size*0.5))
-        
         if key[pygame.K_UP] and self.y_vel == 0 and not self.on_ceiling and not self.tile_above:
+            self.on_ground = False
             self.y_vel = -12.1
-        # ------------------------------CHARACTER SWITCH------------------------------
+        if (not key[pygame.K_LEFT] and not key[pygame.K_RIGHT]) or not self.on_ground:
+            self.walk_counter = 0
+            self.walk_index = 0
+            if self.facing_right:
+                if current_character == 1:
+                    self.img = player1_right_img_list[self.walk_index]
+                elif current_character == 3:
+                    self.img = player3_right_img_list[self.walk_index]
+            elif self.facing_left:
+                if current_character == 1:
+                    self.img = player1_left_img_list[self.walk_index]
+                elif current_character == 3:
+                    self.img = player3_left_img_list[self.walk_index]
+
+        # walking animation
+        if self.walk_counter > self.walk_frame_cooldown:
+            self.walk_counter = 0
+            self.walk_index += 1
+            if self.walk_index >= len(player1_left_img_list):
+                self.walk_index = 0
+            if self.facing_right:
+                if current_character == 1:
+                    self.img = player1_right_img_list[self.walk_index]
+                elif current_character == 3:
+                    self.img = player3_right_img_list[self.walk_index]
+            elif self.facing_left:
+                if current_character == 1:
+                    self.img = player1_left_img_list[self.walk_index]
+                elif current_character == 3:
+                    self.img = player3_left_img_list[self.walk_index]
+        # --------------------------------------------------------------------
+        
+        # ------------------------------character switch------------------------------
         if current_lvl == 7:
             # if 's' is pressed, it checks which character it's currently on and switches it to the other one
             if key[pygame.K_s] and not self.s_pressed:
                 if current_character == 1:
                     current_character = 3
                     if self.facing_right:
-                        self.img = pygame.transform.scale(player3_right1_img, (tile_size, tile_size*1.7))
+                        self.img = pygame.transform.scale(player3_right_img_list[0], (tile_size, tile_size*1.7))
                     elif self.facing_left:
-                        self.img = pygame.transform.scale(player3_left1_img, (tile_size, tile_size*1.7))
+                        self.img = pygame.transform.scale(player3_left_img_list[0], (tile_size, tile_size*1.7))
                 elif current_character == 3:
                     current_character = 1
                     self.vc = False
                     if self.facing_right:
-                        self.img = pygame.transform.scale(player1_right1_img, (tile_size, tile_size*1.7))
+                        self.img = pygame.transform.scale(player1_right_img_list[0], (tile_size, tile_size*1.7))
                     elif self.facing_left:
-                        self.img = pygame.transform.scale(player1_left1_img, (tile_size, tile_size*1.7))
+                        self.img = pygame.transform.scale(player1_left_img_list[0], (tile_size, tile_size*1.7))
                 self.s_pressed = True
             elif not key[pygame.K_s]:
                 self.s_pressed = False
@@ -563,6 +606,7 @@ class Player():
             # activating jump ability if {space} is pressed
             if key[pygame.K_SPACE] and self.y_vel == 0 and time_since_last_wj > self.wj_cooldown:
                 self.water_jumping = True
+                self.on_ground = False
                 self.y_vel = -19.1
                 # playing water splash sound effect
                 water_jump_sound.set_volume(sound_multi)
@@ -585,9 +629,9 @@ class Player():
             if not self.wj_got_x:
                 self.wj_got_x = True
                 self.wj_x = self.rect.x
-            self.counter += 1
-            if self.counter > self.wj_frame_cooldown:
-                self.counter = 0
+            self.wj_counter += 1
+            if self.wj_counter > self.wj_frame_cooldown:
+                self.wj_counter = 0
                 self.wj_index += 1
                 if self.wj_index >= len(wj_img_list):
                     self.water_jumping = False
@@ -601,8 +645,13 @@ class Player():
             if key[pygame.K_a]:
                 self.vc = True
                 if self.on_ceiling and self.tile_above:
+                    self.on_ground = False
                     self.gravity = False
                     self.on_wall = False
+                    if self.facing_right:
+                        self.img = player3_right1_climb_img
+                    elif self.facing_left:
+                        self.img = player3_left1_climb_img
             elif not key[pygame.K_a]:
                 self.vc = False
                 self.gravity = True
@@ -638,6 +687,7 @@ class Player():
                     # moving player up when against a wall during vine climb ability
                     if self.vc and not self.on_ceiling:
                         self.on_wall = True
+                        self.on_ground = False
                         self.y_vel = 0.1
                         dy -= self.vel
                 # vertical collision
@@ -655,6 +705,7 @@ class Player():
                             self.on_ceiling = False
                     # if falling, if hitting ground
                     elif self.y_vel > 0:
+                        self.on_ground = True
                         self.wj_got_x = False
                         self.wj_got_y = False
                         # only changing vertical movement by the distance to the tile it would collide with
