@@ -5,6 +5,7 @@ pygame.mixer.init()
 
 # importing other libraries
 import random
+from pyvidplayer2 import Video
 
 # importing the levels.py file so that I can use the level data stored there
 import levels
@@ -170,6 +171,8 @@ pause_start_time = 0
 credits_running = False
 
 # menu variables
+scene_running = False
+vid = None
 start_menu = True
 paused = True
 pause_menu = False
@@ -178,7 +181,7 @@ confirm_home_menu = False
 r_pressed = False
 
 # level variables
-current_lvl = 7
+current_lvl = 1
 lvl_changed = False
 transitioning = False
 fish_button_activated = False
@@ -269,12 +272,14 @@ def run_credits():
         'Lila Asi',
         'Zech Kim',
         'Isaac Bandara',
+        'Minghao He',
+        'Caleb Bull',
         'Raymond Low',
-        'Micah Low'
+        'Micah Low',
     ]
     if speedrun:
         credits_lines.insert(2, ' ')
-        credits_lines.insert(2, f'{(speedrun_time/1000):.2f}s',)
+        credits_lines.insert(2, f'{(speedrun_time/1000):.3f}s',)
         credits_lines.insert(2, 'Y O U R   T  I M E')
         credits_lines.insert(2, ' ')
     rect_surface = pygame.Surface((1400, 850))
@@ -313,6 +318,31 @@ def run_credits():
         y -= 1.5
         pygame.display.update()
         clock.tick(fps)
+
+# function for playing a video
+def play_vid(vid):
+    vid.resize((win_width, win_height))
+    playing = True
+    esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (tile_size*2, tile_size*0.5))
+
+    while playing:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+        key = pygame.key.get_pressed()
+        if key[pygame.K_ESCAPE]:
+            playing = False
+
+        vid.draw(win, (0, 0))
+        win.blit(esc_to_exit_img, (tile_size*0.25, tile_size*14.25))
+
+        pygame.display.update()
+
+        if vid.get_pos() >= vid.duration:
+            playing = False
+    vid.close()
 # ---------------------------------------------------------------------
 
 # ------------------------------world setup------------------------------
@@ -1017,6 +1047,9 @@ while run:
             fish_button_activated = False
             transitioning = True
             lvl_changed = True
+            vid = Video('cut scenes/start scene.mp4')
+            transition_start()
+            play_vid(vid)
             transition_start()
             if speedrun:
                 if current_lvl == 1:
