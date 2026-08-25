@@ -23,13 +23,13 @@ pygame.display.set_caption('Stuck In between')
 # ------------------------------loading images------------------------------
 # LEVEL/WORLD IMAGES
 # text/other images
-arrows_to_move_img = pygame.image.load('images/arrows to move.png')
-a_to_attract_fish_img = pygame.image.load('images/a to attract fish.png')
-space_for_water_jump_img = pygame.image.load('images/space for water jump.png')
-a_to_climb_img = pygame.image.load('images/a to climb.png')
-s_to_switch_img = pygame.image.load('images/s to switch.png')
+arrows_to_move_img = pygame.transform.scale(pygame.image.load('images/arrows to move.png'), (400, 106.25))
+a_to_attract_fish_img = pygame.transform.scale(pygame.image.load('images/a to attract fish.png'), (300, 50))
+space_for_water_jump_img = pygame.transform.scale(pygame.image.load('images/space for water jump.png'), (250, 65.5))
+a_to_climb_img = pygame.transform.scale(pygame.image.load('images/a to climb.png'), (200, 33.33))
+s_to_switch_img = pygame.transform.scale(pygame.image.load('images/s to switch.png'), (200, 33.33))
 
-arrow_left_img = pygame.transform.rotate(pygame.image.load('images/arrow right.png'), 180)
+arrow_left_img = pygame.transform.scale(pygame.transform.rotate(pygame.image.load('images/arrow right.png'), 180), (87.5, 25))
 
 # 1 edge dirts
 dirt_img = pygame.transform.scale(pygame.image.load('images/dirt.png'), (50, 50))
@@ -179,6 +179,7 @@ pause_menu = False
 option_menu = False
 confirm_home_menu = False
 r_pressed = False
+esc_held = False
 
 # level variables
 current_lvl = 1
@@ -256,6 +257,7 @@ def fish_attract_check():
 
 # function to run the scrolling credits at the end of the game
 def run_credits():
+    global esc_held
     credits_lines = [
         'T H E   E N D',
         ' ',
@@ -263,6 +265,8 @@ def run_credits():
         ' ',
         "Luke Low - Code",
         "Luke Low - In game art",
+        ' ',
+        'Lila Asi - Cut scenes',
         ' ',
         "Coding with Ross (YT channel) - Pygame tutorials",
         'Freesound (freesound.org) - In-game sound effects',
@@ -309,6 +313,7 @@ def run_credits():
         key = pygame.key.get_pressed()
         if key[pygame.K_ESCAPE]:
             y = 150-(len(credits_lines)*tile_size*1.3)
+            esc_held = True
 
         for i in range(len(credits_lines)):
             win.blit(line_list[i], (win.width/2-line_widths[i]/2, y+tile_size*i))
@@ -321,6 +326,7 @@ def run_credits():
 
 # function for playing a video
 def play_vid(vid):
+    global esc_held
     vid.resize((win_width, win_height))
     playing = True
     esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (tile_size*2, tile_size*0.5))
@@ -334,6 +340,7 @@ def play_vid(vid):
         key = pygame.key.get_pressed()
         if key[pygame.K_ESCAPE]:
             playing = False
+            esc_held = True
 
         vid.draw(win, (0, 0))
         win.blit(esc_to_exit_img, (tile_size*0.25, tile_size*14.25))
@@ -365,7 +372,7 @@ class World():
             for tile in row:
                 # 0 draws background tile
                 if tile == '0':
-                    self.img = pygame.transform.scale(background_img, (tile_size, tile_size))
+                    self.img = background_img
 
                 # DIRT TILES
                 # 1-5 are single edge dirt tiles
@@ -508,9 +515,9 @@ class Player():
     def start(self, x, y):
         # player variables
         if current_character == 1:
-            self.img = pygame.transform.scale(player1_left_img_list[0], (tile_size, tile_size*1.7))
+            self.img = player1_left_img_list[0]
         elif current_character == 3:
-            self.img = pygame.transform.scale(player3_left_img_list[0], (tile_size, tile_size*1.7))
+            self.img = player3_left_img_list[0]
         self.rect = self.img.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -951,7 +958,7 @@ player = Player(player_x, player_y)
 gate = Gate(tile_size*24, tile_size*1, tile_size, tile_size*2)
 
 # initializing fish
-fish1 = Fish(tile_size*11, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75, 1) # lvl1
+fish1 = Fish(tile_size*13, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75, 1) # lvl1
 fish2 = Fish(tile_size*8, tile_size*10, tile_size*2, tile_size*3, tile_size*0.75, 2) # lvl2
 fish3 = Fish(tile_size*14, tile_size*17, tile_size*6, tile_size*7, tile_size*0.75, 3) # lvl3
 fish4 = Fish(tile_size*4, tile_size*10, tile_size*8, tile_size*10, tile_size*0.75, 4) # lvl3
@@ -1035,6 +1042,7 @@ while run:
         paused = False
 
     if start_menu:
+        paused = True
         # writing the title with a shadow
         draw_text('STUCK IN BETWEEN', pixel_font, dark_brown, win_width/2-tile_size*10-5, tile_size*1.5+5, tile_size*20)
         draw_text('STUCK IN BETWEEN', pixel_font, light_brown, win_width/2-tile_size*10, tile_size*1.5, tile_size*20)
@@ -1042,15 +1050,17 @@ while run:
         #  - if the start button is pressed, the start menu closes and game starts
         if start_button.draw():
             start_menu = False
+            pause_menu = False
             player.start(player_x_start, player_y_start)
             paused = True
             fish_button_activated = False
             transitioning = True
             lvl_changed = True
-            vid = Video('cut scenes/start scene.mp4')
             transition_start()
-            play_vid(vid)
-            transition_start()
+            if current_lvl == 1:
+                vid = Video('cut scenes/start scene.mp4')
+                play_vid(vid)
+                transition_start()
             if speedrun:
                 if current_lvl == 1:
                     speedrun_start_time = pygame.time.get_ticks()
@@ -1077,11 +1087,11 @@ while run:
             gate.draw(tile_size*24, tile_size*1)
             # drawing key instructions on the screen ("arrows to move" & "'a' to attract fish" & "space for water jump")
             if fish_button_activated:
-                win.blit(pygame.transform.scale(space_for_water_jump_img, (tile_size*5, tile_size*1.31)), (tile_size*3.5, tile_size*1.5))
-                win.blit(pygame.transform.scale(arrow_left_img, (tile_size*1.75, tile_size*0.5)), (tile_size*1.5, tile_size*1.83))
+                win.blit(space_for_water_jump_img, (tile_size*3.5, tile_size*1.5))
+                win.blit(arrow_left_img, (tile_size*1.5, tile_size*1.83))
             else:
-                win.blit(pygame.transform.scale(arrows_to_move_img, (tile_size*8, tile_size*2.125)), (tile_size*2.5, tile_size*1.5))
-                win.blit(pygame.transform.scale(a_to_attract_fish_img, (tile_size*6, tile_size)), (tile_size*18.75, tile_size*13))
+                win.blit(arrows_to_move_img, (tile_size*2.5, tile_size*1.5))
+                win.blit(a_to_attract_fish_img, (tile_size*18.75, tile_size*13))
         elif current_lvl == 2:
             # drawing fish
             fish2.draw()
@@ -1097,7 +1107,7 @@ while run:
             # drawing exit gate
             gate.draw(tile_size*24, tile_size*1)
             # drawing key instructions on the screen ("'a' to climb")
-            win.blit(pygame.transform.scale(a_to_climb_img, (tile_size*4, tile_size/3*2)), (tile_size*20.5, tile_size*4.75))
+            win.blit(a_to_climb_img, (tile_size*20.5, tile_size*4.75))
         elif current_lvl == 5:
             # drawing exit gate
             gate.draw(tile_size*2, tile_size*2)
@@ -1110,7 +1120,7 @@ while run:
             # drawing exit gate
             gate.draw(tile_size*24, tile_size*12)
             # drawing key instructions on sthe screen ("'s' to switch")
-            win.blit(pygame.transform.scale(s_to_switch_img, (tile_size*4, tile_size/3*2)), (tile_size*20.5, tile_size*4.75))
+            win.blit(s_to_switch_img, (tile_size*20.5, tile_size*4.75))
         
         # drawing player
         player.draw()
@@ -1146,7 +1156,7 @@ while run:
                     player.start(player_x_start, player_y_start)
                     fish_button_activated = False
                     if current_lvl == 1:
-                        fish1.start(tile_size*11, tile_size*24, tile_size*11, tile_size*13)
+                        fish1.start(tile_size*13, tile_size*24, tile_size*11, tile_size*13)
                         world = World(levels.lvl1_data)
                         speedrun_start_time = pygame.time.get_ticks()
                     elif current_lvl == 2:
@@ -1277,7 +1287,7 @@ while run:
                 player.start(player_x_start, player_y_start)
                 fish_button_activated = False
                 if current_lvl == 1:
-                    fish1.start(tile_size*11, tile_size*24, tile_size*11, tile_size*13)
+                    fish1.start(tile_size*13, tile_size*24, tile_size*11, tile_size*13)
                     world = World(levels.lvl1_data)
                     speedrun_start_time = pygame.time.get_ticks()
                 elif current_lvl == 2:
@@ -1295,11 +1305,15 @@ while run:
                 r_pressed = False
 
             # if pause button is pressed, open pause menu and pause all game updates
-            if pause_button.draw() or key[pygame.K_ESCAPE]:
+            if pause_button.draw() or (key[pygame.K_ESCAPE] and not esc_held):
                 paused = True
                 pause_menu = True
                 pause_start_time = pygame.time.get_ticks()
 
+            if key[pygame.K_ESCAPE]:
+                esc_held = True
+            else:
+                esc_held = False
     # updating the window constantly so that everything appears
     pygame.display.update()
 
