@@ -147,6 +147,11 @@ bounce_sound = pygame.mixer.Sound('sounds/bounce.wav')
 vines_sound = pygame.mixer.Sound('sounds/vines.wav')
 # --------------------------------------------------------------------------
 
+# ------------------------------loading videos------------------------------
+start_scene = Video('cut scenes/start scene.mp4')
+end_scene = Video('cut scenes/end scene.mp4')
+# --------------------------------------------------------------------------
+
 # ------------------------------defining colours------------------------------
 black = (0,0,0)
 white = (255,255,255)
@@ -1058,8 +1063,7 @@ while run:
             lvl_changed = True
             transition_start()
             if current_lvl == 1:
-                vid = Video('cut scenes/start scene.mp4')
-                play_vid(vid)
+                play_vid(start_scene)
                 transition_start()
             if speedrun:
                 if current_lvl == 1:
@@ -1268,6 +1272,8 @@ while run:
                     paused = True
                     fish_button_activated = False
                     current_lvl = 1
+                    transition_start()
+                    play_vid(end_scene)
                     transition_start()
                     credits_running = True
                     run_credits()
