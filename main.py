@@ -262,6 +262,36 @@ def fish_attract_check():
     else:
         return False
 
+# function to reset current level
+def restart_lvl():
+    global player
+    global fish1
+    global fish2
+    global fish3
+    global fish4
+    global fish5
+    global lvl_changed
+    global fish_button_activated
+    global world
+    global speedrun_start_time
+    lvl_changed = True
+    player.start(player_x_start, player_y_start)
+    fish_button_activated = False
+    if current_lvl == 1:
+        fish1.start(tile_size*14, tile_size*24, tile_size*11, tile_size*13)
+        world = World(levels.lvl1_data)
+        speedrun_start_time = pygame.time.get_ticks()
+    elif current_lvl == 2:
+        fish2.start(tile_size*8, tile_size*10, tile_size*2, tile_size*3)
+        world = World(levels.lvl2_data)
+    elif current_lvl == 3:
+        fish3.start(tile_size*14, tile_size*17, tile_size*6, tile_size*7)
+        fish4.start(tile_size*4, tile_size*10, tile_size*8, tile_size*10)
+        world = World(levels.lvl3_data)
+    elif current_lvl == 7:
+        fish5.start(tile_size*7, tile_size*8, tile_size*2, tile_size*3)
+        world = World(levels.lvl7_data)
+
 # function to run the scrolling credits at the end of the game
 def run_credits():
     global esc_held
@@ -966,12 +996,12 @@ gate = Gate(tile_size*24, tile_size*1, tile_size, tile_size*2)
 
 # initializing fish
 fish1 = Fish(tile_size*13, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75, 1) # lvl1
-fish2 = Fish(tile_size*8, tile_size*10, tile_size*2, tile_size*3, tile_size*0.75, 2) # lvl2
+fish2 = Fish(tile_size*8, tile_size*9, tile_size*2, tile_size*3, tile_size*0.75, 2) # lvl2
 fish3 = Fish(tile_size*14, tile_size*17, tile_size*6, tile_size*7, tile_size*0.75, 3) # lvl3
 fish4 = Fish(tile_size*4, tile_size*10, tile_size*8, tile_size*10, tile_size*0.75, 4) # lvl3
 fish5 = Fish(tile_size*7, tile_size*8, tile_size*2, tile_size*3, tile_size*0.75, 5) # lvl7
 
-# initializing different buttons
+# initializing different button
 # - start menu buttons
 start_button = Button(start_img, win_width/2-tile_size*6.22, tile_size*5.5, tile_size*12.44, tile_size*3.5)
 quit_button = Button(quit_img, win_width/2-tile_size*1.92, tile_size*11, tile_size*3.83, tile_size*1.5)
@@ -1091,6 +1121,7 @@ while run:
                 resetted_game = True
                 current_lvl = 1
                 fish_button_activated = False
+                restart_lvl()
     else:
         # (drawing things when paused and unpaused)
         if current_lvl == 1:
@@ -1161,28 +1192,13 @@ while run:
                     pause_menu = False
                     confirm_home_menu = True
                     resetted_game = False
+                    restart_lvl()
                 # drawing restart button
                 # - if restart button is pressed, the current level restarts
                 elif restart_button.draw():
-                    lvl_changed = True
                     pause_menu = False
                     paused = False
-                    player.start(player_x_start, player_y_start)
-                    fish_button_activated = False
-                    if current_lvl == 1:
-                        fish1.start(tile_size*13, tile_size*24, tile_size*11, tile_size*13)
-                        world = World(levels.lvl1_data)
-                        speedrun_start_time = pygame.time.get_ticks()
-                    elif current_lvl == 2:
-                        fish2.start(tile_size*8, tile_size*10, tile_size*2, tile_size*3)
-                        world = World(levels.lvl2_data)
-                    elif current_lvl == 3:
-                        fish3.start(tile_size*14, tile_size*17, tile_size*6, tile_size*7)
-                        fish4.start(tile_size*4, tile_size*10, tile_size*8, tile_size*10)
-                        world = World(levels.lvl3_data)
-                    elif current_lvl == 7:
-                        fish5.start(tile_size*7, tile_size*8, tile_size*2, tile_size*3)
-                        world = World(levels.lvl7_data)
+                    restart_lvl()
                 # drawing resume button
                 # - if resume button is pressed, the level continues with no change
                 elif resume_button.draw():
@@ -1299,23 +1315,7 @@ while run:
                     transition_start()
 
             if key[pygame.K_r] and not r_pressed:
-                lvl_changed = True
-                player.start(player_x_start, player_y_start)
-                fish_button_activated = False
-                if current_lvl == 1:
-                    fish1.start(tile_size*13, tile_size*24, tile_size*11, tile_size*13)
-                    world = World(levels.lvl1_data)
-                    speedrun_start_time = pygame.time.get_ticks()
-                elif current_lvl == 2:
-                    fish2.start(tile_size*8, tile_size*10, tile_size*2, tile_size*3)
-                    world = World(levels.lvl2_data)
-                elif current_lvl == 3:
-                    fish3.start(tile_size*14, tile_size*17, tile_size*6, tile_size*7)
-                    fish4.start(tile_size*4, tile_size*10, tile_size*8, tile_size*10)
-                    world = World(levels.lvl3_data)
-                elif current_lvl == 7:
-                    fish5.start(tile_size*7, tile_size*8, tile_size*2, tile_size*3)
-                    world = World(levels.lvl7_data)
+                restart_lvl()
                 r_pressed = True
             elif not key[pygame.K_r]:
                 r_pressed = False
