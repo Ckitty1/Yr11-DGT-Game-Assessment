@@ -124,6 +124,7 @@ start_menu_all_img = pygame.transform.scale(pygame.image.load('images/start menu
 start_img = pygame.image.load('images/start.png')
 quit_img = pygame.image.load('images/quit.png')
 blank_button_img = pygame.image.load('images/blank button.png')
+reset_game_img = pygame.image.load('images/reset game.png')
 
 # pause menu images
 pause_img = pygame.image.load('images/pause.png')
@@ -185,6 +186,7 @@ option_menu = False
 confirm_home_menu = False
 r_pressed = False
 esc_held = False
+resetted_game = False
 
 # level variables
 current_lvl = 1
@@ -975,6 +977,7 @@ start_button = Button(start_img, win_width/2-tile_size*6.22, tile_size*5.5, tile
 quit_button = Button(quit_img, win_width/2-tile_size*1.92, tile_size*11, tile_size*3.83, tile_size*1.5)
 speedrun_no_button = Button(blank_button_img, tile_size*21, tile_size*7, tile_size*2, tile_size*2)
 speedrun_yes_button = Button(yes_img, tile_size*21, tile_size*7, tile_size*2, tile_size*2)
+reset_game_button = Button(reset_game_img, tile_size*1.25, tile_size*12.75, tile_size*2, tile_size)
 # - in level button
 pause_button = Button(pause_img, tile_size*0.25, tile_size*0.25, tile_size, tile_size)
 # - pause screen buttons
@@ -1082,6 +1085,12 @@ while run:
         #  - if the quit button is pressed, the game window stops/closes
         if quit_button.draw():
             run = False
+        # drawing reset game button
+        if not resetted_game:
+            if reset_game_button.draw():
+                resetted_game = True
+                current_lvl = 1
+                fish_button_activated = False
     else:
         # (drawing things when paused and unpaused)
         if current_lvl == 1:
@@ -1151,6 +1160,7 @@ while run:
                 if home_button.draw():
                     pause_menu = False
                     confirm_home_menu = True
+                    resetted_game = False
                 # drawing restart button
                 # - if restart button is pressed, the current level restarts
                 elif restart_button.draw():
