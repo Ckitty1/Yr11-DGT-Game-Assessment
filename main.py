@@ -307,6 +307,7 @@ def run_credits():
         ' ',
         "Coding with Ross (YT channel) - Pygame tutorials",
         'Freesound (freesound.org) - In-game sound effects',
+        'Google Fonts - Text fonts',
         ' ',
         'G A M E   T E S T E R S',
         'Oliver Tan',
@@ -317,6 +318,8 @@ def run_credits():
         'Caleb Bull',
         'Raymond Low',
         'Micah Low',
+        'Joshua Low',
+        'Quan Low'
     ]
     if speedrun:
         credits_lines.insert(2, ' ')
@@ -340,7 +343,7 @@ def run_credits():
 
     esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (tile_size*2, tile_size*0.5))
 
-    while y > 150-(len(credits_lines)*tile_size*1.3):
+    while y > 150-(len(credits_lines)*tile_size*1.2):
         win.blit(rect_surface, (0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -364,7 +367,7 @@ def run_credits():
 # function for playing a video
 def play_vid(vid):
     global esc_held
-    vid.resize((win_width, win_height))
+    vid.resize((1000, win_height))
     playing = True
     esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (tile_size*2, tile_size*0.5))
 
@@ -379,7 +382,7 @@ def play_vid(vid):
             playing = False
             esc_held = True
 
-        vid.draw(win, (0, 0))
+        vid.draw(win, (150, 0))
         win.blit(esc_to_exit_img, (tile_size*0.25, tile_size*14.25))
 
         pygame.display.update()
