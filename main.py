@@ -5,7 +5,7 @@ pygame.mixer.init()
 
 # importing other libraries
 import random
-from pyvidplayer2 import Video
+from pyvidplayer2 import Video, READER_FFMPEG
 
 # importing the levels.py file so that I can use the level data stored there
 import levels
@@ -152,12 +152,6 @@ googlesans_font = pygame.font.Font('fonts/GoogleSans-Bold.ttf', 999)
 water_jump_sound = pygame.mixer.Sound('sounds/water splash.wav')
 bounce_sound = pygame.mixer.Sound('sounds/bounce.wav')
 vines_sound = pygame.mixer.Sound('sounds/vines.wav')
-# --------------------------------------------------------------------------
-
-# ------------------------------loading videos------------------------------
-# (cut scene videos)
-start_scene = Video('cut scenes/start scene.mp4')
-end_scene = Video('cut scenes/end scene.mp4')
 # --------------------------------------------------------------------------
 
 # ------------------------------defining colours------------------------------
@@ -397,8 +391,10 @@ def run_credits():
         clock.tick(fps)
 
 # function for playing a video
-def play_vid(vid):
+def play_vid(path):
     global esc_held
+    vid = Video(path, reader=READER_FFMPEG)
+    vid.restart()
     vid.resize((1000, win_height))
     playing = True
     esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (tile_size*2, tile_size*0.5))
@@ -1139,7 +1135,7 @@ while run:
             lvl_changed = True
             transition_start()
             if current_lvl == 1:
-                play_vid(start_scene)
+                play_vid('cut scenes/start scene.mp4')
                 transition_start()
             if speedrun:
                 if current_lvl == 1:
@@ -1216,7 +1212,7 @@ while run:
         # drawing player
         player.draw()
 
-        # drawing speedrun timer on screen based on the stored display time which updates itself on line 1284
+        # drawing speedrun timer on screen based on the stored display time which updates itself on line 1280
         if speedrun:
             speedrun_display_time = f'{(speedrun_time/1000):.1f}s'
             # (only renders a new timer text image if it's actually changed (every 0.1secs) to reduce lag)
@@ -1357,7 +1353,7 @@ while run:
                     fish_button_activated = False
                     current_lvl = 1
                     transition_start()
-                    play_vid(end_scene)
+                    play_vid('cut scenes/end scene.mp4')
                     transition_start()
                     credits_running = True
                     run_credits()
