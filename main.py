@@ -1,3 +1,11 @@
+'''
+STUCK IN BETWEEN
+- 2D puzzle platformer built with pygame that has 2 different characters with different abilities used to complete tasks.
+
+main.py
+- The main game file that runs all the logic for the game using pygame and pyvidplayer2 to run cut scenes.
+'''
+
 # importing pygame library and initializing
 import pygame
 pygame.init()
@@ -12,11 +20,11 @@ import levels
 
 # ------------------------------window setup------------------------------
 # setting screen size
-win_width = 1300
-win_height = 750
+WIN_WIDTH = 1300
+WIN_HEIGHT = 750
 
 # creating and naming the window
-win = pygame.display.set_mode((win_width, win_height))
+win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption('Stuck In between')
 # ------------------------------------------------------------------------
 
@@ -126,7 +134,7 @@ player3_left1_climb_img = pygame.transform.flip(player3_right1_climb_img, True, 
 
 # MENU IMAGES
 # start menu images
-start_menu_all_img = pygame.transform.scale(pygame.image.load('images/start menu all.png'), (win_width, win_height))
+start_menu_all_img = pygame.transform.scale(pygame.image.load('images/start menu all.png'), (WIN_WIDTH, WIN_HEIGHT))
 start_img = pygame.image.load('images/start.png')
 quit_img = pygame.image.load('images/quit.png')
 blank_button_img = pygame.image.load('images/blank button.png')
@@ -164,12 +172,12 @@ light_brown = (110,63,1)
 
 # ------------------------------setting general game variables------------------------------
 # game variables
-# time/framerate/fps variables
+# time/framerate/FPS variables
 clock = pygame.time.Clock()
-fps = 60
+FPS = 60
 
 # world variables
-tile_size = 50 # (tile size of 50x50 in a window size of 1300x750 will make a 26x15 tile grid on screen)
+TILE_SIZE = 50 # (tile size of 50x50 in a window size of 1300x750 will make a 26x15 tile grid on screen)
 
 # speedrun mode variables
 speedrun = False
@@ -207,8 +215,8 @@ fish_button_activated = False
 sound_multi = 1
 
 # player variables
-player_x_start = tile_size*22
-player_y_start = tile_size*7.1
+player_x_start = TILE_SIZE*22
+player_y_start = TILE_SIZE*7.1
 player_x = player_x_start
 player_y = player_y_start
 current_character = 1
@@ -221,6 +229,16 @@ vine_climb = False
 # /function to write text on screen
 # - turns the text inputted into an image which then gets scaled and drawn onto screen
 def draw_text(text, font, colour, x, y, width):
+    '''
+    Writes text onto the screen based on inputs
+
+    Parameters:
+    - text (str): the text that you want to write onto the screen
+    - font (pygame.font.Font()): the font of the text written
+    - colour (RGB tuple): the colour of the text
+    - x, y (int): the x and y coordinates of where the text will be written
+    - width (int): set width of the total line of text. The height ratio is worked out
+    '''
     text_img = font.render(text, True, colour)
     original_width = text_img.get_width()
     original_height = text_img.get_height()
@@ -230,8 +248,8 @@ def draw_text(text, font, colour, x, y, width):
 
 # function that draws the pause menu background
 def draw_pause_background():
-    pygame.draw.rect(win, dark_brown, (tile_size*3, tile_size*2, tile_size*20, tile_size*11), 0, 15)
-    pygame.draw.rect(win, light_brown, (tile_size*3, tile_size*2, tile_size*20, tile_size*11), 15, 15)
+    pygame.draw.rect(win, dark_brown, (TILE_SIZE*3, TILE_SIZE*2, TILE_SIZE*20, TILE_SIZE*11), 0, 15)
+    pygame.draw.rect(win, light_brown, (TILE_SIZE*3, TILE_SIZE*2, TILE_SIZE*20, TILE_SIZE*11), 15, 15)
 
 # function for transition start
 # - drawing a rectangle that covers the screen and slowly turns from transparent to black
@@ -245,7 +263,7 @@ def transition_start():
         win.blit(rect_surface, (0, 0))
         opacity += fade_speed
         pygame.display.update()
-        clock.tick(fps)
+        clock.tick(FPS)
         if opacity > 255:
             break
 
@@ -265,7 +283,7 @@ def transition_end():
         win.blit(rect_surface, (0, 0))
         opacity -= fade_speed
         pygame.display.update()
-        clock.tick(fps)
+        clock.tick(FPS)
         if opacity < 0:
             break
 
@@ -294,18 +312,18 @@ def restart_lvl():
     player.start(player_x_start, player_y_start)
     fish_button_activated = False
     if current_lvl == 1:
-        fish1.start(tile_size*14, tile_size*24, tile_size*11, tile_size*13)
+        fish1.start(TILE_SIZE*14, TILE_SIZE*24, TILE_SIZE*11, TILE_SIZE*13)
         world = World(levels.lvl1_data)
         speedrun_start_time = pygame.time.get_ticks()
     elif current_lvl == 2:
-        fish2.start(tile_size*8, tile_size*10, tile_size*2, tile_size*3)
+        fish2.start(TILE_SIZE*8, TILE_SIZE*10, TILE_SIZE*2, TILE_SIZE*3)
         world = World(levels.lvl2_data)
     elif current_lvl == 3:
-        fish3.start(tile_size*14, tile_size*17, tile_size*6, tile_size*7)
-        fish4.start(tile_size*4, tile_size*10, tile_size*8, tile_size*10)
+        fish3.start(TILE_SIZE*14, TILE_SIZE*17, TILE_SIZE*6, TILE_SIZE*7)
+        fish4.start(TILE_SIZE*4, TILE_SIZE*10, TILE_SIZE*8, TILE_SIZE*10)
         world = World(levels.lvl3_data)
     elif current_lvl == 7:
-        fish5.start(tile_size*7, tile_size*8, tile_size*2, tile_size*3)
+        fish5.start(TILE_SIZE*7, TILE_SIZE*8, TILE_SIZE*2, TILE_SIZE*3)
         world = World(levels.lvl7_data)
 
 # function to run the scrolling credits at the end of the game
@@ -332,10 +350,14 @@ def run_credits():
         'Isaac Bandara',
         'Minghao He',
         'Caleb Bull',
+        'Caleb Whitcombe',
+        'Judah Thornton',
+        'James Dustow',
         'Raymond Low',
         'Micah Low',
         'Joshua Low',
-        'Quan Low'
+        'Quan Low',
+        'Tobias Low'
     ]
     # adding lines to the credits saying the player's speedrun time if speedrun mode was on
     if speedrun:
@@ -348,7 +370,7 @@ def run_credits():
     rect_surface = pygame.Surface((1400, 850))
     rect_surface.fill((0,0,0))
 
-    y = win_height
+    y = WIN_HEIGHT
 
     # making an empty list and saving the scaled text images into the list to iterate through later to draw them onto screen
     # (similar logic to loading animation frames earlier)
@@ -358,16 +380,16 @@ def run_credits():
         text_img = googlesans_font.render(line, True, white)
         original_height = text_img.get_height()
         original_width = text_img.get_width()
-        scale_factor = tile_size/original_height
+        scale_factor = TILE_SIZE/original_height
         img = pygame.transform.scale(text_img, (original_width*scale_factor, original_height*scale_factor))
         line_list.append((img))
         line_widths.append((original_width*scale_factor))
 
-    esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (tile_size*2, tile_size*0.5))
+    esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (TILE_SIZE*2, TILE_SIZE*0.5))
 
     # the position of the credits words starts below the screen and slowly moves up 1.5 pixels each frame,
     # until all the words have gone off the top of the screen and the credits end
-    while y > 150-(len(credits_lines)*tile_size*1.2):
+    while y > 150-(len(credits_lines)*TILE_SIZE*1.2):
         win.blit(rect_surface, (0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -377,27 +399,33 @@ def run_credits():
         # letting the user skip the credits if the escape key is pressed
         key = pygame.key.get_pressed()
         if key[pygame.K_ESCAPE]:
-            y = 150-(len(credits_lines)*tile_size*1.3)
+            y = 150-(len(credits_lines)*TILE_SIZE*1.3)
             esc_held = True
 
         # iterating through the list which holds all the text image data and drawing it onto the screen, each line below each other
         for i in range(len(credits_lines)):
-            win.blit(line_list[i], (win.width/2-line_widths[i]/2, y+tile_size*i))
+            win.blit(line_list[i], (win.width/2-line_widths[i]/2, y+TILE_SIZE*i))
 
-        win.blit(esc_to_exit_img, (tile_size*0.25, tile_size*14.25))
+        win.blit(esc_to_exit_img, (TILE_SIZE*0.25, TILE_SIZE*14.25))
 
         y -= 1.5
         pygame.display.update()
-        clock.tick(fps)
+        clock.tick(FPS)
 
 # function for playing a video
 def play_vid(path):
+    '''
+    Plays a video using the FFmpeg reader
+
+    Parameters:
+    - path(file pathway): the file path to the video that will be played
+    '''
     global esc_held
     vid = Video(path, reader=READER_FFMPEG)
     vid.restart()
-    vid.resize((1000, win_height))
+    vid.resize((1000, WIN_HEIGHT))
     playing = True
-    esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (tile_size*2, tile_size*0.5))
+    esc_to_exit_img = pygame.transform.scale(googlesans_font.render('ESC to skip', True, white), (TILE_SIZE*2, TILE_SIZE*0.5))
 
     # while the video is playing, it iterates through each frame of the video and draws it onto the screen
     while playing:
@@ -412,7 +440,7 @@ def play_vid(path):
             esc_held = True
 
         vid.draw(win, (150, 0))
-        win.blit(esc_to_exit_img, (tile_size*0.25, tile_size*14.25))
+        win.blit(esc_to_exit_img, (TILE_SIZE*0.25, TILE_SIZE*14.25))
 
         pygame.display.update()
 
@@ -558,8 +586,8 @@ class World():
                     self.img = gate_bottom_img
 
                 self.rect = self.img.get_rect()
-                self.rect.x = column_count * tile_size
-                self.rect.y = row_count * tile_size
+                self.rect.x = column_count * TILE_SIZE
+                self.rect.y = row_count * TILE_SIZE
                 tile_info = (self.img, self.rect, tile)
                 self.tile_list.append(tile_info)
 
@@ -600,16 +628,16 @@ class Player():
         self.walk_frame_cooldown = 5
         self.on_ground = True
         # fishing rod
-        self.fishing_rod_img = pygame.transform.scale(fishing_rod_left_img, (tile_size*0.5, tile_size*0.5))
+        self.fishing_rod_img = pygame.transform.scale(fishing_rod_left_img, (TILE_SIZE*0.5, TILE_SIZE*0.5))
         # water jump ability variables ("wj" = "water jump")
-        self.wj_button_img = pygame.transform.scale(wj_button_ready_img, (tile_size, tile_size))
+        self.wj_button_img = pygame.transform.scale(wj_button_ready_img, (TILE_SIZE, TILE_SIZE))
         self.water_jumping = False
         self.wj_cooldown = 4000
         self.wj_last_ability = 0
         self.wj_next_ability = 0
         self.wj_next_ability_in = 0
         # - water splash animation
-        self.wj_img = pygame.transform.scale(wj_img_list[0], (tile_size, tile_size*3.5))
+        self.wj_img = pygame.transform.scale(wj_img_list[0], (TILE_SIZE, TILE_SIZE*3.5))
         self.wj_index = 0
         self.wj_frame_cooldown = 1
         self.wj_counter = 0
@@ -661,7 +689,7 @@ class Player():
             # only runs walking animation while on the ground
             if self.on_ground:
                 self.walk_counter += 1
-            self.fishing_rod_img = pygame.transform.scale(fishing_rod_left_img, (tile_size*0.5, tile_size*0.5))
+            self.fishing_rod_img = pygame.transform.scale(fishing_rod_left_img, (TILE_SIZE*0.5, TILE_SIZE*0.5))
         if key[pygame.K_RIGHT]:
             dx += self.vel
             self.facing_right = True
@@ -669,7 +697,7 @@ class Player():
             # only runs walking animation while on the ground
             if self.on_ground:
                 self.walk_counter += 1
-            self.fishing_rod_img = pygame.transform.scale(fishing_rod_right_img, (tile_size*0.5, tile_size*0.5))
+            self.fishing_rod_img = pygame.transform.scale(fishing_rod_right_img, (TILE_SIZE*0.5, TILE_SIZE*0.5))
         if key[pygame.K_UP] and self.y_vel == 0 and not self.on_ceiling and not self.tile_above:
             self.on_ground = False
             self.y_vel = -12.1
@@ -759,7 +787,7 @@ class Player():
             # saved so that the water jump animation stays in the same place
             if not self.wj_got_y:
                 self.wj_got_y = True
-                self.wj_y = self.rect.bottom - tile_size*3.5
+                self.wj_y = self.rect.bottom - TILE_SIZE*3.5
             if not self.wj_got_x:
                 self.wj_got_x = True
                 self.wj_x = self.rect.x
@@ -772,7 +800,7 @@ class Player():
                 if self.wj_index >= len(wj_img_list):
                     self.water_jumping = False
                     self.wj_index = 0
-                self.wj_img = pygame.transform.scale(wj_img_list[self.wj_index], (tile_size, tile_size*3.5))
+                self.wj_img = pygame.transform.scale(wj_img_list[self.wj_index], (TILE_SIZE, TILE_SIZE*3.5))
         # ------------------------------------------------------------------------------
 
         # ------------------------------Vine Climb Ability------------------------------
@@ -872,20 +900,20 @@ class Player():
 
         if current_lvl in (1, 2, 3, 7):
             # drawing wj (water jump) ability cooldown button onto screen
-            win.blit(self.wj_button_img, (tile_size*0.25, tile_size*1.5))
+            win.blit(self.wj_button_img, (TILE_SIZE*0.25, TILE_SIZE*1.5))
         # changing the wj ability cooldown button to a more greyed out icon and adds a cooldown timer when not ready
         if round(self.wj_next_ability_in/1000) <= -1:
             self.wj_button_img = wj_button_ready_img
         else:
             self.wj_button_img = wj_button_not_ready_img
-            draw_text(f'{round(self.wj_next_ability_in/1000+1)}', pixel_font, white, tile_size*0.63, tile_size*1.65, tile_size/3)
+            draw_text(f'{round(self.wj_next_ability_in/1000+1)}', pixel_font, white, TILE_SIZE*0.63, TILE_SIZE*1.65, TILE_SIZE/3)
 
         # drawing fishing rod in player's hand when attracting fish
         if fish_attracting and current_character == 1:
             if self.facing_right:
-                win.blit(self.fishing_rod_img, (self.rect.x+tile_size-7, self.rect.y+self.rect.height/2-7))
+                win.blit(self.fishing_rod_img, (self.rect.x+TILE_SIZE-7, self.rect.y+self.rect.height/2-7))
             elif self.facing_left:
-                win.blit(self.fishing_rod_img, (self.rect.x-tile_size*0.5+7, self.rect.y+self.rect.height/2-7))
+                win.blit(self.fishing_rod_img, (self.rect.x-TILE_SIZE*0.5+7, self.rect.y+self.rect.height/2-7))
 
         # drawing the water jump animation frames onto the screen
         if self.water_jumping:
@@ -1029,31 +1057,31 @@ class Gate():
 player = Player(player_x, player_y)
 
 # initializing exit gate
-gate = Gate(tile_size*24, tile_size*1, tile_size, tile_size*2)
+gate = Gate(TILE_SIZE*24, TILE_SIZE*1, TILE_SIZE, TILE_SIZE*2)
 
 # initializing fish
-fish1 = Fish(tile_size*13, tile_size*24, tile_size*11, tile_size*13, tile_size*0.75, 1) # lvl1
-fish2 = Fish(tile_size*8, tile_size*9, tile_size*2, tile_size*3, tile_size*0.75, 2) # lvl2
-fish3 = Fish(tile_size*14, tile_size*17, tile_size*6, tile_size*7, tile_size*0.75, 3) # lvl3
-fish4 = Fish(tile_size*4, tile_size*10, tile_size*8, tile_size*10, tile_size*0.75, 4) # lvl3
-fish5 = Fish(tile_size*7, tile_size*8, tile_size*2, tile_size*3, tile_size*0.75, 5) # lvl7
+fish1 = Fish(TILE_SIZE*13, TILE_SIZE*24, TILE_SIZE*11, TILE_SIZE*13, TILE_SIZE*0.75, 1) # lvl1
+fish2 = Fish(TILE_SIZE*8, TILE_SIZE*9, TILE_SIZE*2, TILE_SIZE*3, TILE_SIZE*0.75, 2) # lvl2
+fish3 = Fish(TILE_SIZE*14, TILE_SIZE*17, TILE_SIZE*6, TILE_SIZE*7, TILE_SIZE*0.75, 3) # lvl3
+fish4 = Fish(TILE_SIZE*4, TILE_SIZE*10, TILE_SIZE*8, TILE_SIZE*10, TILE_SIZE*0.75, 4) # lvl3
+fish5 = Fish(TILE_SIZE*7, TILE_SIZE*8, TILE_SIZE*2, TILE_SIZE*3, TILE_SIZE*0.75, 5) # lvl7
 
 # initializing different buttons
 # - start menu buttons
-start_button = Button(start_img, win_width/2-tile_size*6.22, tile_size*5.5, tile_size*12.44, tile_size*3.5)
-quit_button = Button(quit_img, win_width/2-tile_size*1.92, tile_size*11, tile_size*3.83, tile_size*1.5)
-speedrun_no_button = Button(blank_button_img, tile_size*21, tile_size*7, tile_size*2, tile_size*2)
-speedrun_yes_button = Button(yes_img, tile_size*21, tile_size*7, tile_size*2, tile_size*2)
-reset_game_button = Button(reset_game_img, tile_size*1.25, tile_size*12.75, tile_size*2, tile_size)
+start_button = Button(start_img, WIN_WIDTH/2-TILE_SIZE*6.22, TILE_SIZE*5.5, TILE_SIZE*12.44, TILE_SIZE*3.5)
+quit_button = Button(quit_img, WIN_WIDTH/2-TILE_SIZE*1.92, TILE_SIZE*11, TILE_SIZE*3.83, TILE_SIZE*1.5)
+speedrun_no_button = Button(blank_button_img, TILE_SIZE*21, TILE_SIZE*7, TILE_SIZE*2, TILE_SIZE*2)
+speedrun_yes_button = Button(yes_img, TILE_SIZE*21, TILE_SIZE*7, TILE_SIZE*2, TILE_SIZE*2)
+reset_game_button = Button(reset_game_img, TILE_SIZE*1.25, TILE_SIZE*12.75, TILE_SIZE*2, TILE_SIZE)
 # - in level button
-pause_button = Button(pause_img, tile_size*0.25, tile_size*0.25, tile_size, tile_size)
+pause_button = Button(pause_img, TILE_SIZE*0.25, TILE_SIZE*0.25, TILE_SIZE, TILE_SIZE)
 # - pause screen buttons
-home_button = Button(home_img, tile_size*5, tile_size*8, tile_size*3, tile_size*3)
-restart_button = Button(restart_img, win_width/2-tile_size*1.5, tile_size*8, tile_size*3, tile_size*3)
-resume_button = Button(resume_img, win_width-tile_size*8, tile_size*8, tile_size*3, tile_size*3)
+home_button = Button(home_img, TILE_SIZE*5, TILE_SIZE*8, TILE_SIZE*3, TILE_SIZE*3)
+restart_button = Button(restart_img, WIN_WIDTH/2-TILE_SIZE*1.5, TILE_SIZE*8, TILE_SIZE*3, TILE_SIZE*3)
+resume_button = Button(resume_img, WIN_WIDTH-TILE_SIZE*8, TILE_SIZE*8, TILE_SIZE*3, TILE_SIZE*3)
 # - confirm home menu buttons
-yes_button = Button(yes_img, win_width/2-tile_size*4.5, tile_size*8, tile_size*3, tile_size*3)
-no_button = Button(no_img, win_width/2+tile_size*1.5, tile_size*8, tile_size*3, tile_size*3)
+yes_button = Button(yes_img, WIN_WIDTH/2-TILE_SIZE*4.5, TILE_SIZE*8, TILE_SIZE*3, TILE_SIZE*3)
+no_button = Button(no_img, WIN_WIDTH/2+TILE_SIZE*1.5, TILE_SIZE*8, TILE_SIZE*3, TILE_SIZE*3)
 
 # the main game loop that always runs
 run = True
@@ -1062,7 +1090,7 @@ while run:
     key = pygame.key.get_pressed()
 
     # setting the max frame rate so that the game runs the same on every device
-    clock.tick(fps)
+    clock.tick(FPS)
 
     # stops the game when the window closes
     for event in pygame.event.get():
@@ -1120,12 +1148,13 @@ while run:
     if start_menu:
         paused = True
         # writing the title on screen with a shadow
-        draw_text('STUCK IN BETWEEN', pixel_font, dark_brown, win_width/2-tile_size*10-5, tile_size*1.5+5, tile_size*20)
-        draw_text('STUCK IN BETWEEN', pixel_font, light_brown, win_width/2-tile_size*10, tile_size*1.5, tile_size*20)
+        draw_text('STUCK IN BETWEEN', pixel_font, dark_brown, WIN_WIDTH/2-TILE_SIZE*10-5, TILE_SIZE*1.5+5, TILE_SIZE*20)
+        draw_text('STUCK IN BETWEEN', pixel_font, light_brown, WIN_WIDTH/2-TILE_SIZE*10, TILE_SIZE*1.5, TILE_SIZE*20)
         # drawing start button
         #  - if the start button is pressed, the start menu closes and starts/resumes the game
         #  - if it's currently on level 1, it plays the beginning cut scene first then starts the game
         if start_button.draw():
+            restart_lvl()
             start_menu = False
             pause_menu = False
             player.start(player_x_start, player_y_start)
@@ -1143,8 +1172,8 @@ while run:
                 elif current_lvl in range(2, 8):
                     speedrun_start_time += pygame.time.get_ticks() - pause_start_time
         # writing the words "SPEEDRUN MODE" above the button to turn on/off speedrun mode
-        draw_text('SPEEDRUN', pixel_font, light_brown, tile_size*20, tile_size*5, tile_size*4)
-        draw_text('MODE', pixel_font, light_brown, tile_size*20.75, tile_size*5.83, tile_size*2.5)
+        draw_text('SPEEDRUN', pixel_font, light_brown, TILE_SIZE*20, TILE_SIZE*5, TILE_SIZE*4)
+        draw_text('MODE', pixel_font, light_brown, TILE_SIZE*20.75, TILE_SIZE*5.83, TILE_SIZE*2.5)
         # drawing the speedrun mode button
         # - each time it gets clicked, it adds/removes the check mark indicating whether speedrun mode is turned on/off
         if speedrun:
@@ -1171,65 +1200,65 @@ while run:
             # drawing fish
             fish1.draw()
             # drawing exit gate
-            gate.draw(tile_size*24, tile_size*1)
+            gate.draw(TILE_SIZE*24, TILE_SIZE*1)
             # drawing key instructions on the screen ("arrows to move" & "'a' to attract fish" & "space for water jump")
             if fish_button_activated:
-                win.blit(space_for_water_jump_img, (tile_size*3.5, tile_size*1.5))
-                win.blit(arrow_left_img, (tile_size*1.5, tile_size*1.83))
+                win.blit(space_for_water_jump_img, (TILE_SIZE*3.5, TILE_SIZE*1.5))
+                win.blit(arrow_left_img, (TILE_SIZE*1.5, TILE_SIZE*1.83))
             else:
-                win.blit(arrows_to_move_img, (tile_size*2.5, tile_size*1.5))
-                win.blit(a_to_attract_fish_img, (tile_size*18.75, tile_size*13))
+                win.blit(arrows_to_move_img, (TILE_SIZE*2.5, TILE_SIZE*1.5))
+                win.blit(a_to_attract_fish_img, (TILE_SIZE*18.75, TILE_SIZE*13))
         elif current_lvl == 2:
             # drawing fish
             fish2.draw()
             # drawing exit gate
-            gate.draw(tile_size*24, tile_size*12)
+            gate.draw(TILE_SIZE*24, TILE_SIZE*12)
         elif current_lvl == 3:
             # drawing fish
             fish3.draw()
             fish4.draw()
             # drawing exit gate
-            gate.draw(tile_size*24, tile_size*12)
+            gate.draw(TILE_SIZE*24, TILE_SIZE*12)
         elif current_lvl == 4:
             # drawing exit gate
-            gate.draw(tile_size*24, tile_size*1)
+            gate.draw(TILE_SIZE*24, TILE_SIZE*1)
             # drawing key instructions on the screen ("'a' to climb")
-            win.blit(a_to_climb_img, (tile_size*20.5, tile_size*4.75))
+            win.blit(a_to_climb_img, (TILE_SIZE*20.5, TILE_SIZE*4.75))
         elif current_lvl == 5:
             # drawing exit gate
-            gate.draw(tile_size*2, tile_size*2)
+            gate.draw(TILE_SIZE*2, TILE_SIZE*2)
         elif current_lvl == 6:
             # drawing exit gate
-            gate.draw(tile_size*24, tile_size*4)
+            gate.draw(TILE_SIZE*24, TILE_SIZE*4)
         elif current_lvl == 7:
             # drawing fish
             fish5.draw()
             # drawing exit gate
-            gate.draw(tile_size*24, tile_size*12)
+            gate.draw(TILE_SIZE*24, TILE_SIZE*12)
             # drawing key instructions on sthe screen ("'s' to switch")
-            win.blit(s_to_switch_img, (tile_size*20.5, tile_size*4.75))
+            win.blit(s_to_switch_img, (TILE_SIZE*20.5, TILE_SIZE*4.75))
         
         # drawing player
         player.draw()
 
-        # drawing speedrun timer on screen based on the stored display time which updates itself on line 1280
+        # drawing speedrun timer on screen based on the stored display time which updates when unpaused
         if speedrun:
             speedrun_display_time = f'{(speedrun_time/1000):.1f}s'
             # (only renders a new timer text image if it's actually changed (every 0.1secs) to reduce lag)
             if speedrun_display_time != speedrun_stored_time:
                 speedrun_stored_time = speedrun_display_time
                 speedrun_timer_img = pixel_font.render(speedrun_display_time, True, white)
-                speedrun_timer_img = pygame.transform.scale(speedrun_timer_img, (len(speedrun_display_time)*tile_size*0.5, tile_size))
-            win.blit(speedrun_timer_img, (tile_size*0.25, tile_size*14))
+                speedrun_timer_img = pygame.transform.scale(speedrun_timer_img, (len(speedrun_display_time)*TILE_SIZE*0.5, TILE_SIZE))
+            win.blit(speedrun_timer_img, (TILE_SIZE*0.25, TILE_SIZE*14))
 
         if paused:
             if pause_menu:
                 # drawing pause menu background
                 draw_pause_background()
                 # drawing 'PAUSED'
-                draw_text('PAUSED', pixel_font, light_brown, win_width/2-tile_size*5, tile_size*3, tile_size*10)
+                draw_text('PAUSED', pixel_font, light_brown, WIN_WIDTH/2-TILE_SIZE*5, TILE_SIZE*3, TILE_SIZE*10)
                 # drawing "(r)" above the restart button to indicate that you can also press "r" during the level to restart it
-                draw_text('(R)', pixel_font, light_brown, win_width/2-tile_size*0.75, tile_size*7, tile_size*1.5)
+                draw_text('(R)', pixel_font, light_brown, WIN_WIDTH/2-TILE_SIZE*0.75, TILE_SIZE*7, TILE_SIZE*1.5)
                 # drawing home button
                 # - if home button is pressed, it opens a confirm menu which asks whether the user actually wants to go back (restarts current level)
                 if home_button.draw():
@@ -1254,9 +1283,9 @@ while run:
                 # drawing the same background as the pause menu
                 draw_pause_background()
                 # writing a warning message to the user
-                draw_text('WARNING', pixel_font, light_brown, win_width/2-tile_size*5, tile_size*2.5, tile_size*10)
-                draw_text('GOING HOME WILL ALSO RESTART CURRENT LEVEL', pixel_font, light_brown, win_width/2-tile_size*7.5, tile_size*5.25, tile_size*15)
-                draw_text('CONFIRM?', pixel_font, light_brown, win_width/2-tile_size*2.5, tile_size*6.25, tile_size*5)
+                draw_text('WARNING', pixel_font, light_brown, WIN_WIDTH/2-TILE_SIZE*5, TILE_SIZE*2.5, TILE_SIZE*10)
+                draw_text('GOING HOME WILL ALSO RESTART CURRENT LEVEL', pixel_font, light_brown, WIN_WIDTH/2-TILE_SIZE*7.5, TILE_SIZE*5.25, TILE_SIZE*15)
+                draw_text('CONFIRM?', pixel_font, light_brown, WIN_WIDTH/2-TILE_SIZE*2.5, TILE_SIZE*6.25, TILE_SIZE*5)
                 # drawing the confirm button
                 # - if pressed, it continues and goes back to the start menu and restarts current level
                 if yes_button.draw():
@@ -1336,11 +1365,11 @@ while run:
                     fish_attracting = False
 
             # if the player falls off the bottom of the screen or goes above the screen, the player dies/restarts level
-            if player_y > tile_size*17 or player_y < 0:
+            if player_y > TILE_SIZE*17 or player_y < 0:
                 lvl_changed = True
                 fish_button_activated = False
                 player.start(player_x_start, player_y_start)
-                fish5.start(tile_size*7, tile_size*8, tile_size*1, tile_size*2)
+                fish5.start(TILE_SIZE*7, TILE_SIZE*8, TILE_SIZE*1, TILE_SIZE*2)
                 world = World(levels.lvl7_data)
 
             # checking to see if player is touching exit gate
